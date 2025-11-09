@@ -11,7 +11,7 @@ export default async function getStatus(submissionId: string) {
       };
       stdout: null | string;
       stderr: null | string;
-    }>(`/submissions/${submissionId}?fields=stdout,stderr,language_id,stdin,status,expected_output,memory,time`);
+    }>(`/submissions/${submissionId}?fields=stdout,stderr,language_id,stdin,status,expected_output`);
     return response.data;
   } catch (error) {
     if (error instanceof Error) {

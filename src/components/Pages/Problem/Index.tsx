@@ -18,6 +18,7 @@ import { Problem as ProblemType, problemsubmissionstatus, submission, user } fro
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 import { useUserSlice } from '../../../store/user';
 import SkeletonResultsLoader from '../../UI/SkeletonResultsLoader';
+import addSubmission from '../../../services/addSubmission';
 import batchwiseSubmission from '../../../services/batchwiseSubmission';
 import ProblemSubmissions from './ProblemSubmissions';
 import SettingsOverscanOutlinedIcon from '@mui/icons-material/SettingsOverscanOutlined';
@@ -35,7 +36,6 @@ import { useCodeStorage } from '../../../db';
 import OpenInFullOutlinedIcon from '@mui/icons-material/OpenInFullOutlined';
 import RestoreOutlinedIcon from '@mui/icons-material/RestoreOutlined';
 import useFullScreen from '../../../hooks/useFullScreen';
-import updateSubmission from '../../../services/updateSubmission';
 
 export default function Problem() {
   const { problemname } = useParams();
@@ -155,15 +155,15 @@ export default function Problem() {
       monacoinstance.editor.defineTheme('mydarkTheme', darktheme as theme);
     });
   }, [colorMode]);
-  const { mutateAsync:submitProblem } = useMutation({
+  const { mutateAsync } = useMutation({
     mutationKey: ['codesubmission'],
     mutationFn: submitCode,
   });
-
-    const { mutateAsync: updateUserSubmissionById } = useMutation({
-    mutationKey: ['updatesubmissionById'],
-    mutationFn: updateSubmission,
+  const { mutateAsync: updateSubmitMutateAsync } = useMutation({
+    mutationKey: ['updatesubmission'],
+    mutationFn: addSubmission,
   });
+
   const firstPanelTabLabels = useMemo(() => ['Description', 'Submissions'], []);
   const secondPanelTabLabels = useMemo(() => ['Code', 'Test Results', 'Output'], []);
   const handleClose = () => {
@@ -265,18 +265,14 @@ export default function Problem() {
         setCurrentTab(1);
         const testcases = problemInfo?.testCases;
         const [firsttestcase] = testcases;
-        const response = await submitProblem({
+        const response = await mutateAsync({
           code,
           expected_output: firsttestcase.output,
-          stdin: firsttestcase.input,
+          input: firsttestcase.input,
           language_id: language,
-          userId:user?._id as string
         });
-        console.log(response)
-        setSubmissionId(response?.data?.data);
-        const problemSubmissionData=await getSubmission(response?.data?.data);
-        
-        console.log({problemSubmissionData})
+        setSubmissionId(response?.data.token);
+        await getSubmission(response?.data.token);
       } catch (error) {
         setIsSumbitted(false);
         console.log(error);
@@ -309,12 +305,11 @@ export default function Problem() {
       try {
         setCurrentTab(2);
         setProblemSubmissionLoading(true);
-        const batchwiseresponses = await batchwiseSubmission(user?._id as string,submissionbatch);
+        const batchwiseresponse = await batchwiseSubmission(submissionbatch);
         // @ts-ignore
         const batchwiseresponsepromises = [];
-        setSubmissionId(batchwiseresponses?._id as string);
-        batchwiseresponses?.submissionIds.forEach((submissiontoken) => {
-          batchwiseresponsepromises.push(getSubmission(submissiontoken))
+        batchwiseresponse?.forEach((submission) => {
+          batchwiseresponsepromises.push(getSubmission(submission.token));
         });
         // @ts-ignore
         const batchwiseresults = await Promise.all(batchwiseresponsepromises);
@@ -330,14 +325,13 @@ export default function Problem() {
           problemId: problemname?.slice(0, 24) as string,
           languageId: language,
           status: status ? 'Accepted' : 'Wrong Answer',
-          submissionId: batchwiseresponses?._id as string,
+          submissionId: submissionId,
           submittedAt: new Date(),
-          actual_output:batchwiseresults.map((r)=>r.stdout),
-          memoryUsed:batchwiseresults.map((r)=>r.memory),
-          executionTime:batchwiseresults.map((r)=>r.time)
         };
-        const submissionUpdateResponse= await updateUserSubmissionById({submissionId:batchwiseresponses?._id as string,userId:user?._id as string,updateduser:updatesubmissionbody});
-        console.log(submissionUpdateResponse)
+        const submissionupdateResponse = await updateSubmitMutateAsync({
+          id: user?._id as string,
+          newsubmission: updatesubmissionbody,
+        });
         setProblemSubmissions((prev) => [...prev, updatesubmissionbody]);
         setUser({
           ...(user as user),
@@ -345,7 +339,7 @@ export default function Problem() {
             ...(user?.submissions ?? []),
             {
               problemId: problemname?.slice(0, 24) as string,
-              submissionId: batchwiseresponses?._id as string,
+              submissionId: submissionupdateResponse?.data._id as string,
               languageId: language,
               status: status ? 'Accepted' : 'Wrong Answer',
               submittedAt: new Date(),
@@ -355,10 +349,9 @@ export default function Problem() {
       } catch (error) {
         setProblemSubmissionLoading(false);
         setProblemSubmissionStatus('Rejected');
-        await updateUserSubmissionById({
-          submissionId,
-          userId:user?._id as string,
-          updateduser: {
+        await updateSubmitMutateAsync({
+          id: user?._id as string,
+          newsubmission: {
             problemId: problemname?.slice(0, 24) as string,
             languageId: language,
             status: 'Wrong Answer',

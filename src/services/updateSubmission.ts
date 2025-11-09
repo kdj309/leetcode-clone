@@ -1,13 +1,9 @@
 import { protectedapi } from '../API/Index';
-import { IupdateSubmission, updateUserType } from '../utils/types';
-const updateSubmission = async (updateUserProps: {
-  submissionId: string;
-  userId: string;
-  updateduser: IupdateSubmission;
-}) => {
+import { updateuser, updateUserType } from '../utils/types';
+const updateSubmission = async (updateUserProps: { id: string; updateduser: updateuser }) => {
   try {
-    const response = await protectedapi.put<updateUserType>(
-      `/users/${updateUserProps.userId}/submissions/${updateUserProps.submissionId}`,
+    const response = await protectedapi.patch<updateUserType>(
+      `/users/${updateUserProps.id}`,
       updateUserProps.updateduser
     );
     if (response.data.status === 'Failure') {
