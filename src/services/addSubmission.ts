@@ -1,9 +1,10 @@
 import { protectedapi } from '../API/Index';
 import { submissionprops, updateUserType } from '../utils/types';
-const addSubmission = async (updateUserProps: { id: string; newsubmission: submissionprops }) => {
+//
+const runCode = async (updateUserProps: { id: string; newsubmission: submissionprops }) => {
   try {
     const response = await protectedapi.patch<updateUserType>(
-      `/users/${updateUserProps.id}/submission`,
+      `/users/${updateUserProps.id}/submission/${updateUserProps.newsubmission.submissionId}`,
       updateUserProps.newsubmission
     );
     if (response.data.status === 'Failure') {
@@ -17,4 +18,4 @@ const addSubmission = async (updateUserProps: { id: string; newsubmission: submi
   }
 };
 
-export default addSubmission;
+export default runCode;
