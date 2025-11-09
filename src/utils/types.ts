@@ -59,6 +59,13 @@ export interface validateSessionRes extends Omit<commonresponse, 'data'> {
   data: { user: user | null; isExipred: boolean };
 }
 
+export interface batchSubmissionResponse extends Omit<commonresponse, 'data'> {
+  data: {
+    submissionIds: string[];
+    _id:string
+  };
+}
+
 export interface metadata {
   input_format: string;
   output_format: string;
@@ -102,7 +109,16 @@ export interface user {
   submissions: problemsubmission[];
 }
 export interface createUser extends Partial<user> {}
-export interface updateuser extends Partial<user> {}
+export interface IupdateSubmission {
+  submissionId: string;
+  status: string;
+  actual_output?: string[];
+  memoryUsed?: number[];
+  executionTime?: number[];
+  problemId:string;
+  languageId: number;
+  submittedAt?:Date
+}
 export type status = 'Accepted' | 'Wrong Answer' | 'Processing';
 export interface submissionprops {
   problemId: string;
