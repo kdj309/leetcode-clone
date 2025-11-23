@@ -117,7 +117,8 @@ export interface IupdateSubmission {
   executionTime?: number[];
   problemId:string;
   languageId: number;
-  submittedAt?:Date
+  submittedAt?:Date;
+  difficulty?:string;
 }
 export type status = 'Accepted' | 'Wrong Answer' | 'Processing';
 export interface submissionprops {

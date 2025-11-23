@@ -302,6 +302,7 @@ export default function Problem() {
               source_code: code,
               stdin: input,
               expected_output: output,
+              problemId: problemname?.slice(0, 24) as string,
             });
           }
         }
@@ -334,7 +335,8 @@ export default function Problem() {
           submittedAt: new Date(),
           actual_output:batchwiseresults.map((r)=>r.stdout),
           memoryUsed:batchwiseresults.map((r)=>r.memory),
-          executionTime:batchwiseresults.map((r)=>r.time)
+          executionTime:batchwiseresults.map((r)=>r.time),
+          difficulty:problemInfo.difficulty,
         };
         const submissionUpdateResponse= await updateUserSubmissionById({submissionId:batchwiseresponses?._id as string,userId:user?._id as string,updateduser:updatesubmissionbody});
         console.log(submissionUpdateResponse)
