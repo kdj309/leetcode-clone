@@ -1,13 +1,17 @@
 import axios, { AxiosError } from 'axios';
 import refreshToken from '../services/retryToken';
+
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
 });
+
 export const protectedapi = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
   withCredentials: true,
 });
+
 export default api;
+
 protectedapi.interceptors.response.use(
   (response) => {
     return response;
@@ -21,9 +25,15 @@ protectedapi.interceptors.response.use(
       try {
         await refreshToken();
         return protectedapi(originalRequest);
-      } catch (error) {
-        // window.location.href = '/signin';
-        return Promise.reject(error);
+      } catch (refreshError) {
+        // Refresh failed - clear cookies and redirect to signin
+        document.cookie = 'access-token=; max-age=0; path=/;';
+        document.cookie = 'refresh-token=; max-age=0; path=/;';
+        document.cookie = 'session-token=; max-age=0; path=/;';
+        document.cookie = 'id=; max-age=0; path=/;';
+        
+        window.location.href = '/signin';
+        return Promise.reject(refreshError);
       }
     }
     return Promise.reject(error);

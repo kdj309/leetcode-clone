@@ -157,3 +157,104 @@ export interface ShrinkState {
 }
 
 export interface SavedProblems extends Pick<Problem, '_id' | 'title' | 'difficulty'> {}
+
+// Leaderboard Types
+export interface LeaderboardUser {
+  _id: string;
+  userId: {
+    _id:string,
+    username:string
+  };
+  username: string;
+  totalPoints: number;
+  easyProblems: number;
+  mediumProblems: number;
+  hardProblems: number;
+  totalSolved: number;
+  currentRank: number;
+  previousRank: number;
+  isOnline: boolean;
+  lastUpdated: Date;
+}
+
+export interface LeaderboardPagination {
+  currentPage: number;
+  totalPages: number;
+  pageSize: number;
+  totalUsers: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
+export type TimePeriod = 'all' | 'week' | 'month' | 'today';
+export type DifficultyFilter = 'all' | 'easy' | 'medium' | 'hard';
+export type ViewMode = 'table' | 'cards';
+export type SortBy = 'rank' | 'points' | 'recent';
+export type SortOrder = 'asc' | 'desc';
+
+export interface LeaderboardFilters {
+  timePeriod: TimePeriod;
+  searchQuery: string;
+  difficultyFilter: DifficultyFilter;
+  showOnlineOnly: boolean;
+}
+
+export interface LeaderboardUI {
+  viewMode: ViewMode;
+  sortBy: SortBy;
+  sortOrder: SortOrder;
+  highlightedUserId: string | null;
+  autoRefresh: boolean;
+  refreshInterval: number;
+}
+
+export interface UpdateEvent {
+  userId: string;
+  type: 'rank_change' | 'points_update' | 'status_change';
+  data: Record<string, any>;
+  timestamp: Date;
+}
+
+export interface LeaderboardRealtimeState {
+  isConnected: boolean;
+  lastUpdate: Date | null;
+  pendingUpdates: UpdateEvent[];
+  notificationsEnabled: boolean;
+}
+
+export interface LeaderboardCache {
+  pageCache: Map<number, LeaderboardUser[]>;
+  lastCacheCleared: Date | null;
+  cacheDuration: number;
+}
+
+export interface LeaderboardData {
+  users: LeaderboardUser[];
+  isLoading: boolean;
+  error: string | null;
+  lastFetched: Date | null;
+}
+
+export interface LeaderboardState {
+  // Data
+  leaderboardData: LeaderboardData;
+  
+  // Pagination
+  pagination: LeaderboardPagination;
+  
+  // Filters
+  filters: LeaderboardFilters;
+  
+  // Current user
+  currentUserId: string | null;
+  currentUserRank: number | null;
+  
+  // UI
+  ui: LeaderboardUI;
+  
+  // Realtime
+  realtime: LeaderboardRealtimeState;
+  
+  // Cache
+  cache: LeaderboardCache;
+}
