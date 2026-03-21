@@ -46,6 +46,8 @@ interface LeaderboardActions {
   setSortOrder: (order: SortOrder) => void;
   toggleAutoRefresh: () => void;
   setRefreshInterval: (seconds: number) => void;
+  setShowRankIndicators: (show: boolean) => void;
+  toggleShowRankIndicators: () => void;
 
   // Cache actions
   cachePage: (pageNumber: number, data: LeaderboardUser[]) => void;
@@ -108,6 +110,7 @@ const INITIAL_STATE: LeaderboardState = {
     highlightedUserId: null,
     autoRefresh: false,
     refreshInterval: 30,
+    showRankIndicators: true,
   },
   realtime: {
     isConnected: false,
@@ -272,6 +275,16 @@ export const useLeaderboardStore = create<LeaderboardState & LeaderboardActions 
         ui: { ...state.ui, refreshInterval: seconds },
       })),
 
+    setShowRankIndicators: (show) =>
+      set((state) => ({
+        ui: { ...state.ui, showRankIndicators: show },
+      })),
+
+    toggleShowRankIndicators: () =>
+      set((state) => ({
+        ui: { ...state.ui, showRankIndicators: !state.ui.showRankIndicators },
+      })),
+
     cachePage: (pageNumber, data) =>
       set((state) => {
         const newPageCache = new Map(state.cache.pageCache);
@@ -361,7 +374,7 @@ export const useLeaderboardStore = create<LeaderboardState & LeaderboardActions 
 
       if (state.filters.searchQuery) {
         const query = state.filters.searchQuery.toLowerCase();
-        filtered = filtered.filter((u) => u.userId.username.toLowerCase().includes(query));
+        filtered = filtered.filter((u) => u.userName.toLowerCase().includes(query));
       }
 
       return filtered;
@@ -378,12 +391,12 @@ export const useLeaderboardStore = create<LeaderboardState & LeaderboardActions 
     getCurrentUserStats: () => {
       const state = get();
       if (!state.currentUserId) return null;
-      return state.leaderboardData.users.find((u) => u.userId._id === state.currentUserId) || null;
+      return state.leaderboardData.users.find((u) => u.userId === state.currentUserId) || null;
     },
 
     getUserById: (userId: string) => {
       const state = get();
-      return state.leaderboardData.users.find((u) => u.userId._id === userId) || null;
+      return state.leaderboardData.users.find((u) => u.userId === userId) || null;
     },
 
     getNearbyRanks: (rank: number, range: number = 5) => {
@@ -401,7 +414,7 @@ export const useLeaderboardStore = create<LeaderboardState & LeaderboardActions 
 
     getUserPercentile: (userId: string) => {
       const state = get();
-      const user = state.leaderboardData.users.find((u) => u.userId._id === userId);
+      const user = state.leaderboardData.users.find((u) => u.userId === userId);
       if (!user) return 0;
       const userIndex = state.leaderboardData.users.indexOf(user);
       return (userIndex / state.leaderboardData.users.length) * 100;
@@ -409,7 +422,7 @@ export const useLeaderboardStore = create<LeaderboardState & LeaderboardActions 
 
     isUserInTopTen: (userId: string) => {
       const state = get();
-      const user = state.leaderboardData.users.find((u) => u.userId._id === userId);
+      const user = state.leaderboardData.users.find((u) => u.userId === userId);
       return user ? user.currentRank <= 10 : false;
     },
 
@@ -424,7 +437,7 @@ export const useLeaderboardStore = create<LeaderboardState & LeaderboardActions 
       const state = get();
       if (!state.filters.searchQuery) return [];
       const query = state.filters.searchQuery.toLowerCase();
-      return state.leaderboardData.users.filter((u) => u.username.toLowerCase().includes(query));
+      return state.leaderboardData.users.filter((u) => u.userName.toLowerCase().includes(query));
     },
   })
 );

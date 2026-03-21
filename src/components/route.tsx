@@ -4,6 +4,9 @@ import Problem from './Pages/Problem/Index';
 import SignIn from './Pages/SignIn/Index';
 import SignUp from './Pages/SignUp/Index';
 import LeaderBoard from './Pages/LeaderBoard/LeaderBoard';
+import { withProtected } from './Protected';
+
+const ProtectedLeaderBoard = withProtected(LeaderBoard);
 
 const router = createBrowserRouter([
   {
@@ -23,8 +26,8 @@ const router = createBrowserRouter([
     element: <SignUp />,
   },
   {
-    path:"/leaderboard",
-    element:<LeaderBoard/>
-  }
+    path: '/leaderboard',
+    element: <ProtectedLeaderBoard />,
+  },
 ]);
 export default router;

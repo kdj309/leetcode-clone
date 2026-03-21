@@ -31,7 +31,7 @@ protectedapi.interceptors.response.use(
         document.cookie = 'refresh-token=; max-age=0; path=/;';
         document.cookie = 'session-token=; max-age=0; path=/;';
         document.cookie = 'id=; max-age=0; path=/;';
-        
+
         window.location.href = '/signin';
         return Promise.reject(refreshError);
       }

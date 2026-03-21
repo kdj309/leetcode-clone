@@ -26,21 +26,18 @@ export default function LeaderBoardTablePagination() {
         borderRadius: 1,
       }}
     >
-      <Stack direction="row" spacing={2} alignItems="center">
-        <FormControl size="small" sx={{ minWidth: 120 }}>
-          <Select
-            value={pageSize}
-            onChange={(e) => setPageSize(e.target.value as number)}
-            label="Results per page"
-          >
+      <Stack direction='row' spacing={2} alignItems='center'>
+        <FormControl size='small' sx={{ minWidth: 120 }}>
+          <Select value={pageSize} onChange={(e) => setPageSize(e.target.value as number)} label='Results per page'>
             <MenuItem value={10}>10 per page</MenuItem>
             <MenuItem value={25}>25 per page</MenuItem>
             <MenuItem value={50}>50 per page</MenuItem>
             <MenuItem value={100}>100 per page</MenuItem>
           </Select>
         </FormControl>
-        <Typography variant="body2" color="textSecondary">
-          Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, totalUsers)} of {totalUsers} users
+        <Typography variant='body2' color='textSecondary'>
+          Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, totalUsers)} of {totalUsers}{' '}
+          users
         </Typography>
       </Stack>
 
@@ -48,26 +45,16 @@ export default function LeaderBoardTablePagination() {
         count={totalPages}
         page={currentPage}
         onChange={(_, page) => setCurrentPage(page)}
-        color="primary"
+        color='primary'
         showFirstButton
         showLastButton
       />
 
-      <Stack direction="row" spacing={1}>
-        <Button
-          variant="outlined"
-          size="small"
-          onClick={() => setCurrentPage(currentPage - 1)}
-          disabled={!hasPrevPage}
-        >
+      <Stack direction='row' spacing={1}>
+        <Button variant='outlined' size='small' onClick={() => setCurrentPage(currentPage - 1)} disabled={!hasPrevPage}>
           Previous
         </Button>
-        <Button
-          variant="outlined"
-          size="small"
-          onClick={() => setCurrentPage(currentPage + 1)}
-          disabled={!hasNextPage}
-        >
+        <Button variant='outlined' size='small' onClick={() => setCurrentPage(currentPage + 1)} disabled={!hasNextPage}>
           Next
         </Button>
       </Stack>

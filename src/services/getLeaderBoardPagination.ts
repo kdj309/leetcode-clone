@@ -3,11 +3,8 @@ import { commonresponse } from '../utils/types';
 
 export interface LeaderboardUser {
   _id: string;
-  userId: {
-    _id:string;
-    username:string;
-  };
-  username: string;
+  userId: string;
+  userName: string;
   totalPoints: number;
   easyProblems: number;
   mediumProblems: number;
@@ -33,20 +30,14 @@ export interface LeaderboardResponse extends Omit<commonresponse, 'data'> {
   };
 }
 
-const getLeaderBoardPagination = async (
-  page: number = 1,
-  limit: number = 50
-): Promise<LeaderboardResponse> => {
+const getLeaderBoardPagination = async (page: number = 1, limit: number = 50): Promise<LeaderboardResponse> => {
   try {
-    const response = await protectedapi.get<LeaderboardResponse>(
-      `/leaderboard/paginated`,
-      {
-        params: {
-          page,
-          limit,
-        },
-      }
-    );
+    const response = await protectedapi.get<LeaderboardResponse>(`/leaderboard/paginated`, {
+      params: {
+        page,
+        limit,
+      },
+    });
 
     if (response.data.status === 'Failure') {
       throw new Error(response.data.error || 'Failed to fetch leaderboard');

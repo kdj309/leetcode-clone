@@ -18,6 +18,7 @@ import { useUserSlice } from '../../../store/user';
 import { LeaderboardUser } from '../../../utils/types';
 import useLeaderboardStore from '../../../store/leaderboardSlice';
 import { usethemeUtils } from '../../../context/ThemeWrapper';
+import RankChangeIndicator from './RankChangeIndicator';
 
 const HeaderCell = ({ children, align, theme, colorMode }: any) => (
   <TableCell
@@ -39,13 +40,22 @@ const DataCell = ({ children, align = 'left', sx = {} }: any) => (
   </TableCell>
 );
 
-const RankCell = ({ rank }: { rank: number }) => (
-  <DataCell align="center" sx={{ textAlign: 'center', fontWeight: 600 }}>
+const RankCell = ({
+  rank,
+  showIndicators,
+  previousRank,
+}: {
+  rank: number;
+  showIndicators?: boolean;
+  previousRank?: number;
+}) => (
+  <DataCell align='center' sx={{ textAlign: 'center', fontWeight: 600 }}>
     <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
       {rank === 1 && <span style={{ fontSize: '1.3em' }}>🥇</span>}
       {rank === 2 && <span style={{ fontSize: '1.3em' }}>🥈</span>}
       {rank === 3 && <span style={{ fontSize: '1.3em' }}>🥉</span>}
       {rank > 3 && <span>{rank}</span>}
+      {showIndicators && previousRank && <RankChangeIndicator previousRank={previousRank} currentRank={rank} />}
     </Box>
   </DataCell>
 );
@@ -57,12 +67,12 @@ const DifficultyCell = ({ value, difficulty }: { value: number; difficulty: stri
     hard: 'error',
   };
   return (
-    <DataCell align="center">
+    <DataCell align='center'>
       <Chip
         label={value}
         color={difficultyColors[difficulty] || 'warning'}
-        variant="outlined"
-        size="small"
+        variant='outlined'
+        size='small'
         sx={{ minWidth: 60 }}
       />
     </DataCell>
@@ -94,6 +104,7 @@ export default function LeaderBoardTable() {
   const error = useLeaderboardStore((state) => state.leaderboardData.error);
   const currentPage = useLeaderboardStore((state) => state.pagination.currentPage);
   const pageSize = useLeaderboardStore((state) => state.pagination.pageSize);
+  const showRankIndicators = useLeaderboardStore((state) => state.ui.showRankIndicators);
   const user = useUserSlice((state) => state.user);
 
   const getInitials = (username: string): string => {
@@ -115,7 +126,7 @@ export default function LeaderBoardTable() {
 
   if (error) {
     return (
-      <Alert severity="error" sx={{ my: 2 }}>
+      <Alert severity='error' sx={{ my: 2 }}>
         {error}
       </Alert>
     );
@@ -123,7 +134,7 @@ export default function LeaderBoardTable() {
 
   if (!visibleUsers || visibleUsers.length === 0) {
     return (
-      <Alert severity="info" sx={{ my: 2 }}>
+      <Alert severity='info' sx={{ my: 2 }}>
         No leaderboard data available
       </Alert>
     );
@@ -132,26 +143,26 @@ export default function LeaderBoardTable() {
   return (
     <Box sx={{ px: 2, py: 3 }}>
       <TableContainer component={Paper} sx={{ boxShadow: colors.containerShadow }}>
-        <Table sx={{ minWidth: 800 }} aria-label="leaderboard table">
+        <Table sx={{ minWidth: 800 }} aria-label='leaderboard table'>
           {/* Table Header */}
           <TableHead sx={{ backgroundColor: colors.headBg }}>
             <TableRow>
-              <HeaderCell theme={colors.theme} colorMode={colors.colorMode} align="center">
+              <HeaderCell theme={colors.theme} colorMode={colors.colorMode} align='center'>
                 Rank
               </HeaderCell>
               <HeaderCell theme={colors.theme} colorMode={colors.colorMode}>
                 User
               </HeaderCell>
-              <HeaderCell theme={colors.theme} colorMode={colors.colorMode} align="right">
+              <HeaderCell theme={colors.theme} colorMode={colors.colorMode} align='right'>
                 Points
               </HeaderCell>
-              <HeaderCell theme={colors.theme} colorMode={colors.colorMode} align="center">
+              <HeaderCell theme={colors.theme} colorMode={colors.colorMode} align='center'>
                 Easy
               </HeaderCell>
-              <HeaderCell theme={colors.theme} colorMode={colors.colorMode} align="center">
+              <HeaderCell theme={colors.theme} colorMode={colors.colorMode} align='center'>
                 Medium
               </HeaderCell>
-              <HeaderCell theme={colors.theme} colorMode={colors.colorMode} align="center">
+              <HeaderCell theme={colors.theme} colorMode={colors.colorMode} align='center'>
                 Hard
               </HeaderCell>
             </TableRow>
@@ -160,14 +171,18 @@ export default function LeaderBoardTable() {
           {/* Table Body */}
           <TableBody>
             {visibleUsers.map((row: LeaderboardUser, index: number) => {
-              const isCurrentUser = user?._id === row.userId._id;
+              const isCurrentUser = user?._id === row.userId;
               const globalRank = (currentPage - 1) * pageSize + index + 1;
 
               return (
                 <TableRow
                   key={row._id}
                   sx={{
-                    backgroundColor: isCurrentUser ? colors.currentUserBg : index % 2 === 0 ? colors.rowAltBg : colors.rowDefault,
+                    backgroundColor: isCurrentUser
+                      ? colors.currentUserBg
+                      : index % 2 === 0
+                        ? colors.rowAltBg
+                        : colors.rowDefault,
                     '&:hover': {
                       backgroundColor: isCurrentUser ? colors.currentUserHover : colors.rowHoverAlt,
                     },
@@ -175,20 +190,22 @@ export default function LeaderBoardTable() {
                     borderLeft: isCurrentUser ? `4px solid ${colors.primaryColor}` : 'none',
                   }}
                 >
-                  <RankCell rank={globalRank} />
+                  <RankCell rank={globalRank} showIndicators={showRankIndicators} previousRank={row.previousRank} />
 
                   <DataCell>
-                    <Stack direction="row" alignItems="center" spacing={1}>
+                    <Stack direction='row' alignItems='center' spacing={1}>
                       <Avatar
                         sx={{
                           width: 32,
                           height: 32,
-                          backgroundColor: isCurrentUser ? colors.theme.palette.primary.main : colors.theme.palette.action.disabled,
+                          backgroundColor: isCurrentUser
+                            ? colors.theme.palette.primary.main
+                            : colors.theme.palette.action.disabled,
                           fontSize: '0.8rem',
                           fontWeight: 700,
                         }}
                       >
-                        {getInitials(row.userId.username)}
+                        {getInitials(row.userName)}
                       </Avatar>
                       <Box>
                         <Box
@@ -198,13 +215,13 @@ export default function LeaderBoardTable() {
                             fontSize: '0.95rem',
                           }}
                         >
-                          {row.username}
+                          {row.userName}
                           {isCurrentUser && (
                             <Chip
-                              label="You"
-                              size="small"
-                              color="primary"
-                              variant="outlined"
+                              label='You'
+                              size='small'
+                              color='primary'
+                              variant='outlined'
                               sx={{ ml: 1, height: 24 }}
                             />
                           )}
@@ -214,7 +231,7 @@ export default function LeaderBoardTable() {
                   </DataCell>
 
                   <DataCell
-                    align="right"
+                    align='right'
                     sx={{
                       fontWeight: 600,
                       fontSize: '0.95rem',
@@ -224,9 +241,9 @@ export default function LeaderBoardTable() {
                     {row.totalPoints}
                   </DataCell>
 
-                  <DifficultyCell value={row.easyProblems} difficulty="easy" />
-                  <DifficultyCell value={row.mediumProblems} difficulty="medium" />
-                  <DifficultyCell value={row.hardProblems} difficulty="hard" />
+                  <DifficultyCell value={row.easyProblems} difficulty='easy' />
+                  <DifficultyCell value={row.mediumProblems} difficulty='medium' />
+                  <DifficultyCell value={row.hardProblems} difficulty='hard' />
                 </TableRow>
               );
             })}

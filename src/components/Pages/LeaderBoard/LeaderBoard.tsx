@@ -60,7 +60,7 @@ export default function LeaderBoard() {
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: theme.palette.background.default }}>
       <HomeNavbar />
-      <Container maxWidth="xl" sx={{ py: 3 }}>
+      <Container maxWidth='xl' sx={{ py: 3 }}>
         <UserStats />
         <LeaderBoardFilters />
         <LeaderBoardTable />

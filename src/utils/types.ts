@@ -62,7 +62,7 @@ export interface validateSessionRes extends Omit<commonresponse, 'data'> {
 export interface batchSubmissionResponse extends Omit<commonresponse, 'data'> {
   data: {
     submissionIds: string[];
-    _id:string
+    _id: string;
   };
 }
 
@@ -115,10 +115,10 @@ export interface IupdateSubmission {
   actual_output?: string[];
   memoryUsed?: number[];
   executionTime?: number[];
-  problemId:string;
+  problemId: string;
   languageId: number;
-  submittedAt?:Date;
-  difficulty?:string;
+  submittedAt?: Date;
+  difficulty?: string;
 }
 export type status = 'Accepted' | 'Wrong Answer' | 'Processing';
 export interface submissionprops {
@@ -161,11 +161,8 @@ export interface SavedProblems extends Pick<Problem, '_id' | 'title' | 'difficul
 // Leaderboard Types
 export interface LeaderboardUser {
   _id: string;
-  userId: {
-    _id:string,
-    username:string
-  };
-  username: string;
+  userId: string;
+  userName: string;
   totalPoints: number;
   easyProblems: number;
   mediumProblems: number;
@@ -206,6 +203,7 @@ export interface LeaderboardUI {
   highlightedUserId: string | null;
   autoRefresh: boolean;
   refreshInterval: number;
+  showRankIndicators: boolean;
 }
 
 export interface UpdateEvent {
@@ -238,23 +236,23 @@ export interface LeaderboardData {
 export interface LeaderboardState {
   // Data
   leaderboardData: LeaderboardData;
-  
+
   // Pagination
   pagination: LeaderboardPagination;
-  
+
   // Filters
   filters: LeaderboardFilters;
-  
+
   // Current user
   currentUserId: string | null;
   currentUserRank: number | null;
-  
+
   // UI
   ui: LeaderboardUI;
-  
+
   // Realtime
   realtime: LeaderboardRealtimeState;
-  
+
   // Cache
   cache: LeaderboardCache;
 }
