@@ -21,6 +21,7 @@ export default function LeaderBoardTablePagination() {
         alignItems: 'center',
         mt: 4,
         p: 2,
+        minHeight: '64px',
         backgroundColor: theme.palette.background.paper,
         color: theme.palette.text.primary,
         borderRadius: 1,

@@ -346,43 +346,24 @@ export const useLeaderboardStore = create<LeaderboardState & LeaderboardActions 
 
     rankedUsers: () => {
       const state = get();
-      return state.leaderboardData.users.filter((u) => u.totalPoints > 0);
+      return (state?.leaderboardData.users ?? []).filter((u) => u.totalPoints > 0);
     },
 
     topThreeUsers: () => {
       const state = get();
-      return state.leaderboardData.users.slice(0, 3);
+      return (state?.leaderboardData.users ?? []).slice(0, 3);
     },
 
     filteredUsers: () => {
+      // Filtering is now handled by backend API
+      // This returns users as-is from the API response
       const state = get();
-      let filtered = [...state.leaderboardData.users];
-
-      if (state.filters.difficultyFilter !== 'all') {
-        filtered = filtered.filter((user) => {
-          const difficulty = state.filters.difficultyFilter;
-          if (difficulty === 'easy') return user.easyProblems > 0;
-          if (difficulty === 'medium') return user.mediumProblems > 0;
-          if (difficulty === 'hard') return user.hardProblems > 0;
-          return true;
-        });
-      }
-
-      if (state.filters.showOnlineOnly) {
-        filtered = filtered.filter((u) => u.isOnline);
-      }
-
-      if (state.filters.searchQuery) {
-        const query = state.filters.searchQuery.toLowerCase();
-        filtered = filtered.filter((u) => u.userName.toLowerCase().includes(query));
-      }
-
-      return filtered;
+      return state.leaderboardData.users ?? [];
     },
 
     visibleUsers: () => {
       const state = get();
-      const filtered = get().filteredUsers();
+      const filtered = get().filteredUsers() ?? [];
       const start = (state.pagination.currentPage - 1) * state.pagination.pageSize;
       const end = start + state.pagination.pageSize;
       return filtered.slice(start, end);
@@ -391,19 +372,20 @@ export const useLeaderboardStore = create<LeaderboardState & LeaderboardActions 
     getCurrentUserStats: () => {
       const state = get();
       if (!state.currentUserId) return null;
-      return state.leaderboardData.users.find((u) => u.userId === state.currentUserId) || null;
+      return state?.leaderboardData.users?.find((u) => u.userId === state.currentUserId) || null;
     },
 
     getUserById: (userId: string) => {
       const state = get();
-      return state.leaderboardData.users.find((u) => u.userId === userId) || null;
+      return state?.leaderboardData.users?.find((u) => u.userId === userId) || null;
     },
 
     getNearbyRanks: (rank: number, range: number = 5) => {
       const state = get();
+      const users = state.leaderboardData.users ?? [];
       const start = Math.max(0, rank - range - 1);
-      const end = Math.min(state.leaderboardData.users.length, rank + range);
-      return state.leaderboardData.users.slice(start, end);
+      const end = Math.min(users.length, rank + range);
+      return users.slice(start, end);
     },
 
     getUserRankChange: (userId: string) => {
@@ -414,15 +396,17 @@ export const useLeaderboardStore = create<LeaderboardState & LeaderboardActions 
 
     getUserPercentile: (userId: string) => {
       const state = get();
-      const user = state.leaderboardData.users.find((u) => u.userId === userId);
-      if (!user) return 0;
-      const userIndex = state.leaderboardData.users.indexOf(user);
-      return (userIndex / state.leaderboardData.users.length) * 100;
+      const users = state.leaderboardData.users ?? [];
+      const user = users.find((u) => u.userId === userId);
+      if (!user || users.length === 0) return 0;
+      const userIndex = users.indexOf(user);
+      return (userIndex / users.length) * 100;
     },
 
     isUserInTopTen: (userId: string) => {
       const state = get();
-      const user = state.leaderboardData.users.find((u) => u.userId === userId);
+      const users = state.leaderboardData.users ?? [];
+      const user = users.find((u) => u.userId === userId);
       return user ? user.currentRank <= 10 : false;
     },
 
@@ -434,10 +418,10 @@ export const useLeaderboardStore = create<LeaderboardState & LeaderboardActions 
     },
 
     searchResults: () => {
+      // Search is now handled by backend API via /leaderboard/filters endpoint
+      // This returns the already-filtered results from the API
       const state = get();
-      if (!state.filters.searchQuery) return [];
-      const query = state.filters.searchQuery.toLowerCase();
-      return state.leaderboardData.users.filter((u) => u.userName.toLowerCase().includes(query));
+      return state.leaderboardData.users ?? [];
     },
   })
 );

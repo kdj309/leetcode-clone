@@ -256,3 +256,6 @@ export interface LeaderboardState {
   // Cache
   cache: LeaderboardCache;
 }
+export interface SuccessResponse extends Omit<commonresponse, 'data'> {
+data:LeaderboardUser[]
+}

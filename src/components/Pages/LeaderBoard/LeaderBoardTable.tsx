@@ -118,7 +118,7 @@ export default function LeaderBoardTable() {
 
   if (isLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', px: 2, py: 3, minHeight: '400px' }}>
         <CircularProgress />
       </Box>
     );
@@ -126,22 +126,26 @@ export default function LeaderBoardTable() {
 
   if (error) {
     return (
-      <Alert severity='error' sx={{ my: 2 }}>
-        {error}
-      </Alert>
+      <Box sx={{ px: 2, py: 3, minHeight: '400px', display: 'flex', alignItems: 'center' }}>
+        <Alert severity='error' sx={{ width: '100%' }}>
+          {error}
+        </Alert>
+      </Box>
     );
   }
 
   if (!visibleUsers || visibleUsers.length === 0) {
     return (
-      <Alert severity='info' sx={{ my: 2 }}>
-        No leaderboard data available
-      </Alert>
+      <Box sx={{ px: 2, py: 3, minHeight: '400px', display: 'flex', alignItems: 'center' }}>
+        <Alert severity='info' sx={{ width: '100%' }}>
+          No leaderboard data available
+        </Alert>
+      </Box>
     );
   }
 
   return (
-    <Box sx={{ px: 2, py: 3 }}>
+    <Box sx={{ px: 2, py: 3, minHeight: '400px' }}>
       <TableContainer component={Paper} sx={{ boxShadow: colors.containerShadow }}>
         <Table sx={{ minWidth: 800 }} aria-label='leaderboard table'>
           {/* Table Header */}

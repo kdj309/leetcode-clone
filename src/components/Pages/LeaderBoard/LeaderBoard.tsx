@@ -29,13 +29,13 @@ export default function LeaderBoard() {
   });
 
   useEffect(() => {
-    if (data?.data) {
-      setLeaderboardUsers(data.data.users, new Date());
+    if (data?.data && Array.isArray(data.data.users) && data.data.pagination) {
+      setLeaderboardUsers(data.data.users || [], new Date());
       setPaginationState({
-        totalPages: data.data.pagination.totalPages,
-        totalUsers: data.data.pagination.totalUsers,
-        hasNextPage: data.data.pagination.hasNextPage,
-        hasPrevPage: data.data.pagination.hasPrevPage,
+        totalPages: data.data.pagination.totalPages ?? 1,
+        totalUsers: data.data.pagination.totalUsers ?? 0,
+        hasNextPage: data.data.pagination.hasNextPage ?? false,
+        hasPrevPage: data.data.pagination.hasPrevPage ?? false,
       });
     }
   }, [data, setLeaderboardUsers, setPaginationState]);
@@ -60,7 +60,7 @@ export default function LeaderBoard() {
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: theme.palette.background.default }}>
       <HomeNavbar />
-      <Container maxWidth='xl' sx={{ py: 3 }}>
+      <Container maxWidth='xl' sx={{ py: 3, display: 'flex', flexDirection: 'column', gap: 0 }}>
         <UserStats />
         <LeaderBoardFilters />
         <LeaderBoardTable />

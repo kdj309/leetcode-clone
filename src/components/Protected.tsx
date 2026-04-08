@@ -20,7 +20,8 @@ export function withProtected<P extends object>(
     const sessionLoading = useUserSlice((state) => state.sessionLoading);
     const isLoggedIn = useAuthSlice((state) => state.isLogedIn);
 
-    if (sessionLoading==='Loading') {
+    // Wait for session validation to complete before rendering
+    if (sessionLoading === 'Loading') {
       return (
         <Box
           sx={{
@@ -43,7 +44,8 @@ export function withProtected<P extends object>(
 
     const isAuthenticated = isLoggedIn && user?._id;
 
-    if (!isAuthenticated) {
+    // Only redirect after session validation is COMPLETE
+    if (!isAuthenticated && sessionLoading !== 'Loading' && sessionLoading !== 'Not Started') {
       return <Navigate to={fallbackRoute} replace />;
     }
 
