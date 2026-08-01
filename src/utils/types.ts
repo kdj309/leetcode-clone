@@ -96,7 +96,7 @@ export interface problemsubmission {
   problemId: string;
   submissionId: string;
   languageId: number;
-  status: 'Accepted' | 'Wrong Answer' | 'Error';
+  status: 'accepted' | 'wrong answer' | 'error';
   submittedAt: Date;
 }
 export interface user {
@@ -120,7 +120,7 @@ export interface IupdateSubmission {
   submittedAt?: Date;
   difficulty?: string;
 }
-export type status = 'Accepted' | 'Wrong Answer' | 'Processing';
+export type status = 'accepted' | 'wrong Answer' | 'Processing';
 export interface submissionprops {
   problemId: string;
   submissionId: string;
@@ -257,5 +257,5 @@ export interface LeaderboardState {
   cache: LeaderboardCache;
 }
 export interface SuccessResponse extends Omit<commonresponse, 'data'> {
-data:LeaderboardUser[]
+  data: LeaderboardUser[];
 }

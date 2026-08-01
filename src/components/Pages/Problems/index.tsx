@@ -7,6 +7,7 @@ import {
   createColumnHelper,
   useReactTable,
   getCoreRowModel,
+  getFilteredRowModel,
   ColumnFiltersState,
 } from '@tanstack/react-table';
 import ProblemsTable from './ProblemsTable';
@@ -25,24 +26,21 @@ import { useAuthSlice } from '../../../store/authslice/auth';
 import { searchProblems } from '../../../services/searchProblems';
 import useDebounce from '../../../hooks/useDebounce';
 import getProblems from '../../../services/getProblems';
-
+import PlaylistAddOutlinedIcon from '@mui/icons-material/PlaylistAddOutlined';
 export default function ProblemsSet() {
   const [open, setOpen] = useState<boolean>(true);
   const [difficultyFilter, setDifficultyFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const { isError, isLoading, error } = useAuthContext();
   const isLogedIn = useAuthSlice((state) => state.isLogedIn);
-
-  // Get search query and clear function from Zustand store
   const searchQuery = useProblemsSearchSlice((state) => state.searchQuery);
   const clearSearchQuery = useProblemsSearchSlice((state) => state.clearSearchQuery);
+  const user = useUserSlice((state) => state.user);
 
   const handleClose = () => {
     setOpen(false);
   };
 
-  // Pagination settings (limit set to 10 per page)
-  const LIMIT = 10;
   const [paginationState, setPaginationState] = useState({
     pageIndex: 0,
     pageSize: 10,
@@ -51,39 +49,43 @@ export default function ProblemsSet() {
   // Compute page number from paginationState (ensures it's always a number)
   const page = useMemo(() => Math.floor(paginationState.pageIndex) + 1, [paginationState.pageIndex]);
 
-  // Use autocomplete hook for search - only query parameter (no difficulty)
-  const { allResults, totalResults: autocompleteTotal, isSearching } = useProblemsAutocomplete(searchQuery, page, LIMIT);
+  const { pageSize } = paginationState;
 
-  // Separate query for difficulty-filtered results (works independently of search)
-  // Enabled whenever difficulty is selected (any value other than 'all')
-  const debouncedQuery = useDebounce(searchQuery, 200);
+  // Use autocomplete hook for search - only query parameter (no difficulty)
   const {
-    data: difficultyFilteredData,
-    isLoading: isDifficultyFiltering,
-  } = useQuery({
-    queryKey: ['problems-search', { query: debouncedQuery.trim(), difficulty: difficultyFilter, page, limit: LIMIT }],
-    queryFn: async ({ queryKey }) => {
-      // queryKey contains: ['problems-search', { query, difficulty, page, limit }]
-      const { query: queryVal, difficulty: diffVal, page: pageVal, limit: limitVal } = queryKey[1] as { query: string; difficulty: string; page: number; limit: number };
+    allResults,
+    totalResults: autocompleteTotal,
+    isSearching,
+  } = useProblemsAutocomplete(searchQuery, page, pageSize);
+
+  const debouncedQuery = useDebounce(searchQuery, 200);
+  const { data: difficultyFilteredData, isLoading: isDifficultyFiltering } = useQuery({
+    queryKey: [
+      'problems-search',
+      { query: debouncedQuery.trim(), difficulty: difficultyFilter, page, limit: pageSize },
+    ],
+    queryFn: ({ queryKey }) => {
+      const {
+        query: queryVal,
+        difficulty: diffVal,
+        page: pageVal,
+        limit: limitVal,
+      } = queryKey[1] as { query: string; difficulty: string; page: number; limit: number };
       return searchProblems(pageVal, limitVal, queryVal, diffVal);
     },
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
-    enabled: difficultyFilter !== 'all', // Independent of search query - enabled whenever difficulty is selected
+    enabled: difficultyFilter !== 'all',
     refetchOnWindowFocus: false,
   });
 
   // Query for default paginated problems (when no search/difficulty filter)
-  const {
-    data: defaultProblemsData,
-    isLoading: isDefaultProblemsLoading,
-  } = useQuery({
-    queryKey: ['problems-default', { page, limit: LIMIT }],
-    queryFn: async ({ queryKey }) => { 
-      // queryKey contains: ['problems-default', { page, limit }]
-      const objAtIndex1 = queryKey[1];
+  const { data: defaultProblemsData, isLoading: isDefaultProblemsLoading } = useQuery({
+    queryKey: ['problems-default', { page, limit: pageSize }],
+    queryFn: ({ queryKey }) => {
+      const [_, objAtIndex1] = queryKey;
       const { page: pageVal, limit: limitVal } = objAtIndex1 as { page: number; limit: number };
-      return getProblems(pageVal, limitVal); 
+      return getProblems(pageVal, limitVal);
     },
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
@@ -101,56 +103,68 @@ export default function ProblemsSet() {
   }, [defaultProblemsData?.problems, setProblems]);
 
   const tableData = useMemo(() => {
-    // Determine which data source to use
     if (searchQuery.trim().length > 0) {
       // Search results - map MappedSearchResult to Problem-like shape for table
-      return allResults.map(result => ({
+      return allResults.map((result) => ({
         _id: result.id,
         title: result.title,
         difficulty: result.difficulty || 'easy',
-        status: 'default',
+        status: isLogedIn ? (user?.submissions.find((p) => p.problemId == result.id)?.status ?? 'todo') : 'todo',
       })) as unknown as Problem[];
     } else if (difficultyFilter !== 'all') {
       // Difficulty filtered - map MappedSearchResult to Problem-like shape
-      return (difficultyFilteredData?.allResults || []).map(result => ({
+      return (difficultyFilteredData?.allResults || []).map((result) => ({
         _id: result.id,
         title: result.title,
         difficulty: result.difficulty || 'easy',
-        status: 'default',
+        status: isLogedIn ? (user?.submissions.find((p) => p.problemId == result.id)?.status ?? 'todo') : 'todo',
       })) as unknown as Problem[];
-    } else {
-      // Default: use all problems from defaultProblemsData (already full Problem objects)
-      return defaultProblemsData?.problems || [];
     }
-  }, [searchQuery, difficultyFilter, allResults, difficultyFilteredData?.allResults, defaultProblemsData?.problems]);
+    return defaultProblemsData?.problems || [];
+  }, [
+    searchQuery,
+    difficultyFilter,
+    allResults,
+    difficultyFilteredData?.allResults,
+    defaultProblemsData?.problems,
+    user,
+  ]);
   const columnHelper = createColumnHelper<Problem>();
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
-  const user = useUserSlice((state) => state.user);
-
   const columns = useMemo(
     () => [
-      // Status column - only for logged in users
       ...(isLogedIn
         ? [
-          columnHelper.accessor((row) => row.status, {
-            id: 'Status',
-            cell: (info) => {
-              let icon;
-              if (user) {
-                icon = isAccepted(info.row.original._id, user?.submissions) ? (
-                  <TaskAltOutlinedIcon titleAccess='Solved' color='success' />
-                ) : isRejected(info.row.original._id, user?.submissions) ? (
-                  <PendingOutlinedIcon titleAccess='Attempted' color='warning' />
-                ) : null;
-              } else {
-                icon = null;
-              }
-              return <div> {icon}</div>;
-            },
-            filterFn: 'statusFilter' as any,
-          }),
-        ]
+            columnHelper.accessor((row) => row.status, {
+              id: 'Status',
+              cell: (info) => {
+                if (user) {
+                  if (isAccepted(info.row.original._id, user?.submissions)) {
+                    return (
+                      <div>
+                        {' '}
+                        <TaskAltOutlinedIcon titleAccess='Solved' color='success' />
+                      </div>
+                    );
+                  } else if (isRejected(info.row.original._id, user?.submissions)) {
+                    return (
+                      <div>
+                        <PendingOutlinedIcon titleAccess='Attempted' color='warning' />
+                      </div>
+                    );
+                  }
+                  return (
+                    <div>
+                      <PlaylistAddOutlinedIcon titleAccess='To Do' color='action'></PlaylistAddOutlinedIcon>
+                    </div>
+                  );
+                }
+                return null;
+              },
+              filterFn: 'statusFilter' as any,
+            }),
+          ]
         : []),
       columnHelper.accessor((row) => row.title, {
         id: 'Title',
@@ -171,43 +185,45 @@ export default function ProblemsSet() {
     ],
     [user, isLogedIn]
   );
-  const totalResultsValue = searchQuery.trim().length > 0
-    ? autocompleteTotal // Search results
-    : difficultyFilter !== 'all'
-      ? (difficultyFilteredData?.totalResults || 0) // Difficulty filtered
-      : (defaultProblemsData?.total || 0); // Default problems
-  const totalPages = Math.ceil(totalResultsValue / LIMIT);
+  const totalResultsValue =
+    searchQuery.trim().length > 0
+      ? autocompleteTotal // Search results
+      : difficultyFilter !== 'all'
+        ? difficultyFilteredData?.totalResults || 0 // Difficulty filtered
+        : defaultProblemsData?.total || 0; // Default problems
+  const totalPages = Math.ceil(totalResultsValue / pageSize);
 
   // Handle pagination change from React Table
   const handlePaginationChange = (updater: any) => {
-    setPaginationState((prev) =>
-      typeof updater === 'function' ? updater(prev) : updater
-    );
+    setPaginationState((prev) => (typeof updater === 'function' ? updater(prev) : updater));
   };
 
   const table = useReactTable({
     data: tableData ?? [],
     columns,
     getCoreRowModel: getCoreRowModel(),
-    // NOTE: Removed getPaginationRowModel() and getFilteredRowModel() for server-side pagination
-    // Server handles pagination and filtering, no need for client-side models
+    getFilteredRowModel: getFilteredRowModel(),
     onColumnFiltersChange: setColumnFilters,
-    onPaginationChange: handlePaginationChange, // Use the handler that properly processes the updater
-    manualPagination: true, // Tell React Table pagination is handled server-side
-    pageCount: totalPages, // Calculate based on server total
+    onPaginationChange: handlePaginationChange,
+    manualPagination: true,
+    pageCount: totalPages,
     state: {
       columnFilters,
       pagination: paginationState,
     },
     filterFns: {
       statusFilter: (row, _columnId, filterValue) => {
-        if (!isLogedIn) return true; // If not logged in, don't filter
+        if (!isLogedIn) {
+          return true;
+        }
 
         const acceptedProblems = [
-          ...new Set(user?.submissions.filter((s) => s.status === 'Accepted').map((s) => s.problemId)),
+          ...new Set(user?.submissions.filter((s) => s.status.toLowerCase() === 'accepted').map((s) => s.problemId)),
         ];
         const rejectedProblems = [
-          ...new Set(user?.submissions.filter((s) => s.status === 'Wrong Answer').map((s) => s.problemId)),
+          ...new Set(
+            user?.submissions.filter((s) => s.status.toLowerCase() === 'wrong answer').map((s) => s.problemId)
+          ),
         ];
         const onlyRejectProblems = rejectedProblems.filter((id) => !acceptedProblems.includes(id));
         if (filterValue === 'solved') {
@@ -223,14 +239,13 @@ export default function ProblemsSet() {
   });
   const handleDifficultyChange = (event: SelectChangeEvent) => {
     setDifficultyFilter(event.target.value);
-    // Difficulty is now handled server-side, no need to set table filter
   };
   const handleStatusChange = (event: SelectChangeEvent) => {
-    setStatusFilter(event.target.value);
-    table.getColumn('Status')?.setFilterValue(event.target.value);
+    const nextValue = event.target.value;
+    setStatusFilter(nextValue);
+    table.getColumn('Status')?.setFilterValue(nextValue);
   };
 
-  // Clear filters when search query is cleared
   useEffect(() => {
     if (searchQuery.trim().length === 0) {
       setStatusFilter('all');

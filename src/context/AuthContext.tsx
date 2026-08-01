@@ -19,7 +19,7 @@ export const AuthContextWrapper: FC<contextWrapperProps> = ({ children }) => {
   useEffect(() => {
     if (sessionLoading === 'Completed') {
       if (!user) {
-        // window.location.href = '/signin';
+        window.location.href = '/signin';
       } else {
         signIn();
       }
@@ -32,5 +32,7 @@ export const AuthContextWrapper: FC<contextWrapperProps> = ({ children }) => {
     }
   }, []);
 
-  return <AuthContext.Provider value={{ isLoading: false, isError: false, error: null }}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ isLoading: false, isError: false, error: null }}>{children}</AuthContext.Provider>
+  );
 };

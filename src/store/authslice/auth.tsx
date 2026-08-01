@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { devtools, persist } from 'zustand/middleware';
 
 interface authSlice {
   isLogedIn: boolean;
@@ -8,15 +8,18 @@ interface authSlice {
 }
 
 export const useAuthSlice = create<authSlice>()(
-  persist(
-    (set) => ({
-      isLogedIn: false,
-      signOut: () => set(() => ({ isLogedIn: false })),
-      signIn: () => set(() => ({ isLogedIn: true })),
-    }),
-    {
-      name: 'auth-storage', // localStorage key
-      partialize: (state) => ({ isLogedIn: state.isLogedIn }), // Only persist isLogedIn
-    }
+  devtools(
+    persist(
+      (set) => ({
+        isLogedIn: false,
+        signOut: () => set(() => ({ isLogedIn: false }), false, 'signOut'),
+        signIn: () => set(() => ({ isLogedIn: true }), false, 'signIn'),
+      }),
+      {
+        name: 'auth-storage', // localStorage key
+        partialize: (state) => ({ isLogedIn: state.isLogedIn }), // Only persist isLogedIn
+      }
+    ),
+    { name: 'authSlice' }
   )
 );

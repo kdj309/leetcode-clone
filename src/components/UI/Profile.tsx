@@ -1,4 +1,11 @@
-import { Avatar, IconButton, ListItemIcon, Menu, MenuItem, Tooltip, Typography } from '@mui/material';
+import Avatar from '@mui/material/Avatar';
+import IconButton from '@mui/material/IconButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import Tooltip from '@mui/material/Tooltip';
+import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 import { useUserSlice } from '../../store/user';
 import EmailIcon from '@mui/icons-material/Email';
@@ -24,6 +31,16 @@ export default function Profile() {
   };
   const handleClose = () => {
     setAnchorEl(null);
+  };
+  const handleLogout = async () => {
+    await mutateAsync();
+    if (isError) {
+      console.log(error);
+      return;
+    }
+    setUser(null);
+    signOut();
+    navigate('/signin');
   };
   return (
     <>
@@ -55,21 +72,10 @@ export default function Profile() {
           </Typography>
         </MenuItem>
         <MenuItem onClick={handleClose}>
-          <ListItemIcon
-            onClick={async () => {
-              await mutateAsync();
-              if (isError) {
-                console.log(error);
-                return;
-              }
-              setUser(null);
-              signOut();
-              navigate('/signin');
-            }}
-          >
+          <ListItemIcon onClick={handleLogout}>
             <LogoutIcon />
           </ListItemIcon>
-          Logout
+          <ListItemText onClick={handleLogout}>Logout</ListItemText>
         </MenuItem>
       </Menu>
     </>

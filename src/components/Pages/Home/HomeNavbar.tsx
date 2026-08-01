@@ -2,7 +2,8 @@ import { Link as ReactLink, useLocation, useNavigate } from 'react-router-dom';
 import darklogo from '../../../assets/images/logo-dark.26900637.svg';
 import lightlogo from '../../../assets/images/logo-light.5034df26.svg';
 import { usethemeUtils } from '../../../context/ThemeWrapper';
-import { Button, Link } from '@mui/material';
+import Button from '@mui/material/Button';
+import Link from '@mui/material/Link'
 import { useAuthSlice } from '../../../store/authslice/auth';
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 import DarkModeIcon from '@mui/icons-material/DarkModeOutlined';
@@ -18,42 +19,42 @@ export default function HomeNavbar() {
   const isLogedIn = useAuthSlice((state) => state.isLogedIn);
   const location = useLocation();
   const navigate = useNavigate();
-  
+
   // Use Zustand store for search state (synced across pages)
   const searchQuery = useProblemsSearchSlice((state) => state.searchQuery);
   const setSearchQuery = useProblemsSearchSlice((state) => state.setSearchQuery);
-  
+
   const { topResults, isSearching } = useProblemsAutocomplete(searchQuery);
 
-  // Handle autocomplete selection - navigate to problems list with search query maintained
   const handleAutocompleteSelect = useCallback(
     (_: MappedSearchResult) => {
-      // Keep the search query in store and navigate to problems list
-      navigate('/problems');
+      navigate(`/problems/${_.id}`);
     },
     [navigate]
   );
 
-  const handleSearchChange = useCallback((query: string) => {
-    setSearchQuery(query);
-  }, [setSearchQuery]);
+  const handleSearchChange = useCallback(
+    (query: string) => {
+      setSearchQuery(query);
+    },
+    [setSearchQuery]
+  );
+
+  const showHomeSearch = location.pathname === '/' && isLogedIn;
 
   return (
     <nav className='tw-container-lg tw-mx-auto tw-flex tw-items-center tw-justify-between tw-p-2 tw-bottom-2 tw-border-b-[#ffffff24] tw-gap-4'>
       {/* Logo */}
-      <div className='tw-flex-shrink-0'>
-        <img
-          src={colorMode === 'light' ? darklogo : lightlogo}
-          width={100}
-          height={80}
-          className='tw-object-contain'
-        ></img>
-      </div>
+      <Link component={ReactLink} to='/'>
+        <div className='tw-flex-shrink-0'>
+          <img src={colorMode === 'light' ? darklogo : lightlogo} className='tw-object-contain logo-img'></img>
+        </div>
+      </Link>
 
       {/* Center Content - Autocomplete or Navigation */}
       <div className='tw-flex-1 tw-flex tw-items-center tw-justify-center'>
         {/* Problem Autocomplete - Show only on home page */}
-        {location.pathname === '/' && isLogedIn && (
+        {showHomeSearch && (
           <div className='tw-w-full tw-max-w-2xl'>
             <ProblemAutocomplete
               topResults={topResults}
@@ -66,18 +67,41 @@ export default function HomeNavbar() {
           </div>
         )}
 
-        {/* Navigation Links - Show on other pages */}
-        {(location.pathname === '/leaderboard' || location.pathname === '/problems') && (
-          <Link
-            className={`tw-py-2 tw-px-4 ${colorMode === 'dark' ? 'tw-text-white' : ''}`}
-            underline='hover'
-            component={ReactLink}
-            to='/'
-          >
-            Problems
-          </Link>
-        )}
-        {location.pathname !== '/' && location.pathname !== '/leaderboard' && location.pathname !== '/problems' && (
+        {/* Navigation Links */}
+        {location.pathname === '/' ? (
+          <div className='tw-flex tw-gap-4'>
+            <Link
+              className={`tw-py-2 tw-px-4 ${colorMode === 'dark' ? 'tw-text-white' : ''}`}
+              underline='hover'
+              component={ReactLink}
+              to='/leaderboard'
+            >
+              Leaderboard
+            </Link>
+          </div>
+        ) : location.pathname === '/leaderboard' ? (
+          <div className='tw-flex tw-gap-4'>
+            <Link
+              className={`tw-py-2 tw-px-4 ${colorMode === 'dark' ? 'tw-text-white' : ''}`}
+              underline='hover'
+              component={ReactLink}
+              to='/'
+            >
+              Problems
+            </Link>
+          </div>
+        ) : location.pathname === '/problems' ? (
+          <div className='tw-flex tw-gap-4'>
+            <Link
+              className={`tw-py-2 tw-px-4 ${colorMode === 'dark' ? 'tw-text-white' : ''}`}
+              underline='hover'
+              component={ReactLink}
+              to='/leaderboard'
+            >
+              Leaderboard
+            </Link>
+          </div>
+        ) : (
           <div className='tw-flex tw-gap-4'>
             <Link
               className={`tw-py-2 tw-px-4 ${colorMode === 'dark' ? 'tw-text-white' : ''}`}
@@ -127,13 +151,12 @@ export default function HomeNavbar() {
           )}
         </li>
         <li>
-          <Button
-            className={colorMode === 'dark' ? 'tw-border-white' : ''}
-            variant='text'
-            onClick={toggleColorMode}
-            size='large'
-          >
-            {colorMode === 'dark' ? <LightModeOutlinedIcon sx={{ color: 'white' }} /> : <DarkModeIcon />}
+          <Button className={colorMode === 'dark' ? 'tw-border-white' : ''} variant='text' onClick={toggleColorMode}>
+            {colorMode === 'dark' ? (
+              <LightModeOutlinedIcon sx={{ color: 'white', width: 32, height: 32 }} />
+            ) : (
+              <DarkModeIcon sx={{ width: 32, height: 32 }} />
+            )}
           </Button>
         </li>
       </ul>

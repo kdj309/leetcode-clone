@@ -20,11 +20,15 @@ export function getResult(batchwiseresults: submission[]) {
   return { status: true, successcount };
 }
 export function isAccepted(problemId: string, submissions: problemsubmission[]) {
-  const userSubmissions = [...new Set(submissions.filter((s) => s.status === 'Accepted').map((s) => s.problemId))];
+  const userSubmissions = [
+    ...new Set(submissions.filter((s) => s.status.toLowerCase() === 'accepted').map((s) => s.problemId)),
+  ];
   return userSubmissions.includes(problemId);
 }
 export function isRejected(problemId: string, submissions: problemsubmission[]) {
-  const userSubmissions = [...new Set(submissions.filter((s) => s.status === 'Wrong Answer').map((s) => s.problemId))];
+  const userSubmissions = [
+    ...new Set(submissions.filter((s) => s.status.toLowerCase() === 'wrong answer').map((s) => s.problemId)),
+  ];
   return userSubmissions.includes(problemId);
 }
 export const getGridColumnStyles = (

@@ -1,12 +1,13 @@
 import { ComponentType, ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
-import { Box, CircularProgress } from '@mui/material';
+import Box  from '@mui/material/Box';
+import CircularProgress from '@mui/material/CircularProgress'
 import { useUserSlice } from '../store/user';
 import { useAuthSlice } from '../store/authslice/auth';
 
 /**
  * Higher-Order Component (HOC) for protecting routes
- * 
+ *
  * Checks if user is authenticated before rendering component
  * Redirects to login page if user is not logged in
  * Shows loading state during session validation
@@ -52,4 +53,3 @@ export function withProtected<P extends object>(
     return <Component {...props} />;
   };
 }
-

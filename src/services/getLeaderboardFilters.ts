@@ -16,10 +16,10 @@ export interface LeaderboardFiltersResponse {
 /**
  * Fetch leaderboard data with filters applied
  * Supports search by username, filter by time period, and pagination
- * 
+ *
  * @param params - Filter params (userName, period, page, limit)
  * @returns Filtered leaderboard data with pagination
- * 
+ *
  * @example
  * const data = await getLeaderboardFilters({
  *   userName: 'john',
@@ -28,9 +28,7 @@ export interface LeaderboardFiltersResponse {
  *   limit: 50
  * });
  */
-export async function getLeaderboardFilters(
-  params: LeaderboardFiltersParams
-): Promise<LeaderboardFiltersResponse> {
+export async function getLeaderboardFilters(params: LeaderboardFiltersParams): Promise<LeaderboardFiltersResponse> {
   try {
     const queryParams = new URLSearchParams();
 
@@ -54,9 +52,7 @@ export async function getLeaderboardFilters(
         pagination?: LeaderboardPagination;
       };
       message?: string;
-    }>(
-      `/leaderboard/filters${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
-    );
+    }>(`/leaderboard/filters${queryParams.toString() ? `?${queryParams.toString()}` : ''}`);
 
     if (response.data.status === 'Success' && response.data.data) {
       return {

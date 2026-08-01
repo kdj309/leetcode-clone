@@ -24,10 +24,10 @@ interface UseProblemsAutocompleteReturn {
  * - Returns top 5 for autocomplete dropdown
  * - Returns all results for table (client-side status filtering applied)
  * - Supports pagination with page and limit
- * 
+ *
  * Note: Difficulty filtering is handled separately - passed directly to searchProblems
  * when needed for table results. This hook only handles query-based search.
- * 
+ *
  * @param searchQuery - Raw search input from user
  * @param page - Current page number (1-indexed)
  * @param limit - Items per page (default: 10)
@@ -48,9 +48,13 @@ export const useProblemsAutocomplete = (
     error,
   } = useQuery({
     queryKey: ['problems-search', { query: debouncedQuery.trim(), page, limit }],
-    queryFn: async ({ queryKey }) => {
+    queryFn: ({ queryKey }) => {
       // queryKey contains: ['problems-search', { query, page, limit }]
-      const { query: queryVal, page: pageVal, limit: limitVal } = queryKey[1] as { query: string; page: number; limit: number };
+      const {
+        query: queryVal,
+        page: pageVal,
+        limit: limitVal,
+      } = queryKey[1] as { query: string; page: number; limit: number };
       return searchProblems(pageVal, limitVal, queryVal);
     },
     staleTime: 5 * 60 * 1000, // 5 minutes

@@ -1,4 +1,12 @@
-import { Box, Button, Stack, Select, MenuItem, FormControl, Typography, Pagination, useTheme } from '@mui/material';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Stack from '@mui/material/Stack';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import Typography from '@mui/material/Typography';
+import Pagination from '@mui/material/Pagination';
+import useTheme from '@mui/material/styles/useTheme';
 import { useLeaderboardStore } from '../../../store/leaderboardSlice/leaderboard';
 
 export default function LeaderBoardTablePagination() {

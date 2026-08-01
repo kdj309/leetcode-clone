@@ -1,4 +1,10 @@
-import { Box, Paper, Grid2, Typography, Stack, Avatar, useTheme } from '@mui/material';
+import Box from '@mui/material/Box';
+import Paper from '@mui/material/Paper';
+import Grid2 from '@mui/material/Grid2';
+import Typography from '@mui/material/Typography';
+import Stack from '@mui/material/Stack';
+import Avatar from '@mui/material/Avatar';
+import useTheme from '@mui/material/styles/useTheme';
 import { useUserSlice } from '../../../store/user';
 import useLeaderboardStore from '../../../store/leaderboardSlice';
 import { usethemeUtils } from '../../../context/ThemeWrapper';

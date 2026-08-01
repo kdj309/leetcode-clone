@@ -1,4 +1,5 @@
-import { Tab, Tabs } from '@mui/material';
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
 import React from 'react';
 import { a11yProps } from '../../utils/helpers';
 interface TabsProps {

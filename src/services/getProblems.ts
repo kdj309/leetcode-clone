@@ -14,11 +14,11 @@ const getProblems = async (page: number = 1, limit: number = 10) => {
         total: number;
       };
     }>(`/problems?page=${page}&limit=${limit}`);
-    
+
     if (response.data.status === 'Failure') {
       throw new Error('Failed to fetch problems');
     }
-    
+
     return {
       problems: response.data.data.problems || [],
       total: response.data.data.total || 0,

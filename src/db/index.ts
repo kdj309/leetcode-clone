@@ -18,7 +18,7 @@ class CodeStorageDB {
     this.db = null;
   }
 
-  async initDB(): Promise<IDBDatabase> {
+  initDB(): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
       const request: IDBOpenDBRequest = indexedDB.open(this.dbName, this.version);
 

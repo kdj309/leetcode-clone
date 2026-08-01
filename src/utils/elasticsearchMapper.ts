@@ -50,9 +50,7 @@ export const parseElasticsearchResponse = (
   totalResults: number;
 } => {
   // Map and sort by score (ES already returns sorted, but we ensure it)
-  const mappedResults = hits
-    .map(mapHitToResult)
-    .sort((a, b) => b.score - a.score);
+  const mappedResults = hits.map(mapHitToResult).sort((a, b) => b.score - a.score);
 
   return {
     topResults: mappedResults.slice(0, 5), // Top 5 for dropdown

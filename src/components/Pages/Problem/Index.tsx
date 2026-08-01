@@ -3,7 +3,14 @@ import { Monaco } from '@monaco-editor/react';
 import * as monaco from '@monaco-editor/react';
 import { useMutation } from '@tanstack/react-query';
 import getProblem from '../../../services/getProblem';
-import { Alert, Backdrop, CircularProgress, IconButton, Stack, Tab, Tabs, Typography } from '@mui/material';
+import Alert from '@mui/material/Alert';
+import Backdrop from '@mui/material/Backdrop';
+import CircularProgress from '@mui/material/CircularProgress';
+import IconButton from '@mui/material/IconButton';
+import Stack from '@mui/material/Stack';
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
+import Typography from '@mui/material/Typography';
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import Layout from '../../UI/Layout';
 import { usethemeUtils } from '../../../context/ThemeWrapper';
@@ -353,7 +360,7 @@ export default function Problem() {
               problemId: problemname?.slice(0, 24) as string,
               submissionId: batchwiseresponses?._id as string,
               languageId: language,
-              status: status ? 'Accepted' : 'Wrong Answer',
+              status: status ? 'accepted' : 'wrong answer',
               submittedAt: new Date(),
             },
           ],

@@ -4,7 +4,12 @@ import lightlogo from '../../assets/images/logo_light.png';
 import leetcodedarklogo from '../../assets/images/logo-dark.26900637.svg';
 import leetcodelightlogo from '../../assets/images/logo-light.5034df26.svg';
 import { usethemeUtils } from '../../context/ThemeWrapper';
-import { Button, ButtonGroup, CircularProgress, Link, Stack, Typography } from '@mui/material';
+import Button from '@mui/material/Button';
+import ButtonGroup from '@mui/material/ButtonGroup';
+import CircularProgress from '@mui/material/CircularProgress';
+import Link from '@mui/material/Link';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
 import DarkModeIcon from '@mui/icons-material/DarkModeOutlined';
 import LightModeIcon from '@mui/icons-material/LightModeOutlined';
 import { useAuthSlice } from '../../store/authslice/auth';
@@ -79,7 +84,7 @@ export default function Navbar({
       {problems.length > 0 && <CustomDrawer problems={problemsRange} open={openDrawer} toggleDrawer={toggleDrawer} />}
       <nav className='tw-border-b-[#ffffff24]'>
         <ul
-          className={`tw-container-md tw-flex ${location.pathname.includes('/problems/') ? 'tw-justify-between' : 'tw-justify-evenly'} tw-mx-2 tw-items-center tw-list-none`}
+          className={`tw-container-md tw-flex ${location.pathname.includes('/problems/') ? 'tw-justify-between' : 'tw-justify-evenly'} tw-mx-2 tw-items-center tw-list-none tw-p-1`}
         >
           <li className='tw-p-1 tw-flex tw-items-center tw-gap-6 '>
             <Link to='/' component={ReactLink} underline='hover'>
@@ -200,7 +205,11 @@ export default function Navbar({
                 variant='text'
                 onClick={toggleColorMode}
               >
-                {colorMode === 'dark' ? <LightModeIcon sx={{ color: 'white' }} /> : <DarkModeIcon />}
+                {colorMode === 'dark' ? (
+                  <LightModeIcon sx={{ width: 32, height: 32, color: 'white' }} />
+                ) : (
+                  <DarkModeIcon sx={{ width: 32, height: 32 }} />
+                )}
               </Button>
             </li>
           </ul>

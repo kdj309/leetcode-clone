@@ -11,7 +11,12 @@ import { Problem } from '../../../utils/types';
 import TablePaginationActions from './ProblemTableActions';
 import { styled } from '@mui/material/styles';
 import { usethemeUtils } from '../../../context/ThemeWrapper';
-import { Container, IconButton, SelectChangeEvent, Box, CircularProgress, Alert } from '@mui/material';
+import Container from '@mui/material/Container';
+import IconButton from '@mui/material/IconButton';
+import type { SelectChangeEvent } from '@mui/material/Select';
+import Box from '@mui/material/Box';
+import CircularProgress from '@mui/material/CircularProgress';
+import Alert from '@mui/material/Alert';
 import { Table as TableType } from '@tanstack/react-table';
 import DifficultyFilter from './DifficultyFilter';
 import StatusFilter from './StatusFilter';
@@ -116,7 +121,7 @@ function ProblemsTable({
 
       {!isTableLoading && data.length > 0 && (
         <TablePagination
-          rowsPerPageOptions={[5, 10, 25, { label: 'All', value: data?.length }]}
+          rowsPerPageOptions={[5, 10, 25, totalCount]}
           component='div'
           count={totalCount}
           rowsPerPage={pageSize}

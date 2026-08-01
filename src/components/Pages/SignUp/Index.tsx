@@ -1,4 +1,4 @@
-import { Box } from '@mui/material';
+import Box from '@mui/material/Box';
 import Layout from '../../UI/Layout';
 import SignUpForm from './Form';
 

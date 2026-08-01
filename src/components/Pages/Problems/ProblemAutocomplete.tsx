@@ -3,13 +3,11 @@
  * Displays top 5 search results with keyboard navigation and direct problem linking
  */
 
-import {
-  Autocomplete,
-  TextField,
-  CircularProgress,
-  Box,
-  useTheme,
-} from '@mui/material';
+import Autocomplete from '@mui/material/Autocomplete';
+import TextField from '@mui/material/TextField';
+import CircularProgress from '@mui/material/CircularProgress';
+import Box from '@mui/material/Box';
+import useTheme from '@mui/material/styles/useTheme';
 import { usethemeUtils } from '../../../context/ThemeWrapper';
 import { MappedSearchResult } from '../../../utils/elasticsearchMapper';
 import SearchIcon from '@mui/icons-material/Search';
@@ -34,21 +32,17 @@ export default function ProblemAutocomplete({
   const theme = useTheme();
   const { colorMode } = usethemeUtils();
 
-  const handleSelect = (
-    _: React.SyntheticEvent,
-    value: MappedSearchResult | string | null
-  ) => {
+  const handleSelect = (_: React.SyntheticEvent, value: MappedSearchResult | string | null) => {
     if (value && typeof value === 'object') {
       onSelect(value);
     }
   };
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
-    // Handle Enter key to close dropdown
     if (event.key === 'Enter') {
       const autocompleteElement = event.currentTarget as HTMLDivElement;
       const activeOption = autocompleteElement.querySelector('[role="option"][data-option-index="0"]');
-      
+
       if (activeOption) {
         (event.currentTarget as unknown as { blur: () => void }).blur?.();
       }
@@ -60,9 +54,7 @@ export default function ProblemAutocomplete({
       <Autocomplete
         freeSolo
         options={topResults}
-        getOptionLabel={(option) =>
-          typeof option === 'string' ? option : option.title
-        }
+        getOptionLabel={(option) => (typeof option === 'string' ? option : option.title)}
         inputValue={searchQuery}
         onInputChange={(_, value) => onSearchChange(value)}
         onChange={handleSelect}
@@ -75,9 +67,7 @@ export default function ProblemAutocomplete({
               : 'No problems found'
         }
         onKeyDown={handleKeyDown}
-        isOptionEqualToValue={(option, value) =>
-          typeof value === 'string' ? false : option.id === value.id
-        }
+        isOptionEqualToValue={(option, value) => (typeof value === 'string' ? false : option.id === value.id)}
         renderInput={(params) => (
           <TextField
             {...params}
@@ -91,9 +81,7 @@ export default function ProblemAutocomplete({
                   <SearchIcon
                     sx={{
                       fontSize: 20,
-                      color: colorMode === 'dark'
-                        ? theme.palette.text.secondary
-                        : theme.palette.action.active,
+                      color: colorMode === 'dark' ? theme.palette.text.secondary : theme.palette.action.active,
                     }}
                   />
                 </Box>
@@ -109,9 +97,7 @@ export default function ProblemAutocomplete({
               width: '100%',
               '& .MuiOutlinedInput-root': {
                 borderRadius: '8px',
-                backgroundColor: colorMode === 'dark'
-                  ? theme.palette.background.paper
-                  : '#f9f9f9',
+                backgroundColor: colorMode === 'dark' ? theme.palette.background.paper : '#f9f9f9',
                 '&:hover': {
                   backgroundColor: theme.palette.background.paper,
                 },
@@ -129,9 +115,7 @@ export default function ProblemAutocomplete({
               px: 2,
               cursor: 'pointer',
               '&:hover': {
-                backgroundColor: colorMode === 'dark'
-                  ? 'rgba(255, 255, 255, 0.1)'
-                  : 'rgba(0, 0, 0, 0.05)',
+                backgroundColor: colorMode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
               },
             }}
           >
@@ -161,12 +145,8 @@ export default function ProblemAutocomplete({
         slotProps={{
           paper: {
             sx: {
-              backgroundColor: colorMode === 'dark'
-                ? theme.palette.background.paper
-                : theme.palette.background.default,
-              boxShadow: colorMode === 'dark'
-                ? '0 4px 6px rgba(0, 0, 0, 0.3)'
-                : '0 2px 8px rgba(0, 0, 0, 0.1)',
+              backgroundColor: colorMode === 'dark' ? theme.palette.background.paper : theme.palette.background.default,
+              boxShadow: colorMode === 'dark' ? '0 4px 6px rgba(0, 0, 0, 0.3)' : '0 2px 8px rgba(0, 0, 0, 0.1)',
             },
           },
         }}

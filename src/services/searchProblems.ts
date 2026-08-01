@@ -1,5 +1,5 @@
-import api from "../API/Index";
-import { parseElasticsearchResponse, SearchResultHit } from "../utils/elasticsearchMapper";
+import api from '../API/Index';
+import { parseElasticsearchResponse, SearchResultHit } from '../utils/elasticsearchMapper';
 
 export const searchProblems = async (page: number, limit: number, query?: string, difficulty?: string) => {
   try {
@@ -19,7 +19,7 @@ export const searchProblems = async (page: number, limit: number, query?: string
     if (query && query.trim().length > 0) {
       params.append('query', query);
     }
-    
+
     // Add difficulty to query params if provided and not 'all'
     if (difficulty && difficulty !== 'all') {
       params.append('difficulty', difficulty);
@@ -37,7 +37,7 @@ export const searchProblems = async (page: number, limit: number, query?: string
     const hits: SearchResultHit[] = response.data?.data.results || [];
     const total: number = response.data?.data.total || 0;
     // Parse and return both top 5 and all results
-    return parseElasticsearchResponse(hits,total);
+    return parseElasticsearchResponse(hits, total);
   } catch (error) {
     console.error('Error searching problems:', error);
     throw error;
