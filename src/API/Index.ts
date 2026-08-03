@@ -1,5 +1,6 @@
 import axios, { AxiosError } from 'axios';
 import refreshToken from '../services/retryToken';
+import signOutAPI from '../services/signOut';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
@@ -26,11 +27,11 @@ protectedapi.interceptors.response.use(
         await refreshToken();
         return protectedapi(originalRequest);
       } catch (refreshError) {
-        // Refresh failed - clear cookies and redirect to signin
-        document.cookie = 'access-token=; max-age=0; path=/;';
-        document.cookie = 'refresh-token=; max-age=0; path=/;';
-        document.cookie = 'session-token=; max-age=0; path=/;';
-        document.cookie = 'id=; max-age=0; path=/;';
+        try {
+          await signOutAPI();
+        } catch {
+          // Ignore logout failures and redirect to signin anyway.
+        }
 
         window.location.href = '/signin';
         return Promise.reject(refreshError);

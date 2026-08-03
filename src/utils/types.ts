@@ -80,6 +80,7 @@ export interface TabPanelProps {
   value: number;
   wrapperClassName?: string;
   innerDivClassName?: string;
+  group?: string;
 }
 export interface submission {
   language_id: number;
@@ -171,7 +172,7 @@ export interface LeaderboardUser {
   currentRank: number;
   previousRank: number;
   isOnline: boolean;
-  lastUpdated: Date;
+  lastUpdated: string;
 }
 
 export interface LeaderboardPagination {
@@ -221,7 +222,7 @@ export interface LeaderboardRealtimeState {
 }
 
 export interface LeaderboardCache {
-  pageCache: Map<number, LeaderboardUser[]>;
+  pageCache: Map<number, { data: LeaderboardUser[]; cachedAt: number }>;
   lastCacheCleared: Date | null;
   cacheDuration: number;
 }

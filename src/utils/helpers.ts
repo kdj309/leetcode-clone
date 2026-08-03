@@ -1,9 +1,9 @@
 import { problemsubmission, submission } from './types';
 
-export function a11yProps(index: number) {
+export function a11yProps(group: string, index: number | string) {
   return {
-    id: `simple-tab-${index}`,
-    'aria-controls': `simple-tabpanel-${index}`,
+    id: `${group}-tab-${index}`,
+    'aria-controls': `${group}-tabpanel-${index}`,
   };
 }
 

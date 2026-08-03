@@ -30,7 +30,7 @@ export default function ProblemSubmissions({ data }: { data: problemsubmissionst
         id: 'Status',
         cell: (info) => {
           const value = info.getValue();
-          return <Typography color={value === 'Accepted' ? 'success' : 'error'}> {value}</Typography>;
+          return <Typography color={value.toUpperCase() === 'ACCEPTED' ? 'success' : 'error'}> {value.toUpperCase()}</Typography>;
         },
       }),
       columnHelper.accessor((row) => row.languageId, {

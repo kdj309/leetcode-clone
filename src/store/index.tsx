@@ -2,7 +2,8 @@
 export { useAuthSlice } from './authslice/auth';
 export { useUserSlice } from './user';
 export { useProblemSlice } from './problemSlice/problem';
-export { useLeaderboardStore } from './leaderboardSlice/leaderboard';
+export { default } from './leaderboardSlice';
+export { useLeaderboardStore } from './leaderboardSlice';
 
 // Export types
 export type { LeaderboardState } from '../utils/types';

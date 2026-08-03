@@ -1,7 +1,7 @@
 import { ComponentType, ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
-import Box  from '@mui/material/Box';
-import CircularProgress from '@mui/material/CircularProgress'
+import Box from '@mui/material/Box';
+import CircularProgress from '@mui/material/CircularProgress';
 import { useUserSlice } from '../store/user';
 import { useAuthSlice } from '../store/authslice/auth';
 
@@ -22,7 +22,7 @@ export function withProtected<P extends object>(
     const isLoggedIn = useAuthSlice((state) => state.isLogedIn);
 
     // Wait for session validation to complete before rendering
-    if (sessionLoading === 'Loading') {
+    if (sessionLoading === 'Loading' || sessionLoading === 'Not Started') {
       return (
         <Box
           sx={{
@@ -46,7 +46,7 @@ export function withProtected<P extends object>(
     const isAuthenticated = isLoggedIn && user?._id;
 
     // Only redirect after session validation is COMPLETE
-    if (!isAuthenticated && sessionLoading !== 'Loading' && sessionLoading !== 'Not Started') {
+    if (!isAuthenticated) {
       return <Navigate to={fallbackRoute} replace />;
     }
 

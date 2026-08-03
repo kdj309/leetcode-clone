@@ -39,6 +39,7 @@ export default function RankChangeIndicator({ previousRank, currentRank }: RankC
     >
       {isImproved ? (
         <ArrowUpwardIcon
+          titleAccess={`Rank improved by ${rankChange}`}
           sx={{
             fontSize: '1.2rem',
             color: theme.palette.success.main,
@@ -47,6 +48,7 @@ export default function RankChangeIndicator({ previousRank, currentRank }: RankC
         />
       ) : (
         <ArrowDownwardIcon
+          titleAccess={`Rank dropped by ${Math.abs(rankChange)}`}
           sx={{
             fontSize: '1.2rem',
             color: theme.palette.error.main,

@@ -7,7 +7,7 @@ import ListItemButton from '@mui/material/ListItemButton';
 import Divider from '@mui/material/Divider';
 import Stack from '@mui/material/Stack';
 import IconButton from '@mui/material/IconButton';
-import {capitalize} from '@mui/material/utils';
+import capitalize from '@mui/material/utils/capitalize';
 import { SavedProblems } from '../../utils/types';
 import { useNavigate, useParams } from 'react-router-dom';
 import { difficultyColors } from '../../constants/Index';

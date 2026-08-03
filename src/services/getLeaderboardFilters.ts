@@ -52,6 +52,7 @@ export async function getLeaderboardFilters(params: LeaderboardFiltersParams): P
         pagination?: LeaderboardPagination;
       };
       message?: string;
+      error?: string;
     }>(`/leaderboard/filters${queryParams.toString() ? `?${queryParams.toString()}` : ''}`);
 
     if (response.data.status === 'Success' && response.data.data) {
@@ -61,10 +62,11 @@ export async function getLeaderboardFilters(params: LeaderboardFiltersParams): P
       };
     }
 
-    throw new Error(response.data.message || 'Failed to fetch filtered leaderboard');
+    throw new Error(response.data.error || response.data.message || 'Failed to fetch filtered leaderboard');
   } catch (error) {
     if (error instanceof Error) {
-      throw new Error(`[getLeaderboardFilters] ${error.message}`);
+      console.error('[getLeaderboardFilters]', error);
+      throw error;
     }
     throw error;
   }

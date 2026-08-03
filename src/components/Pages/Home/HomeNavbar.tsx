@@ -3,7 +3,7 @@ import darklogo from '../../../assets/images/logo-dark.26900637.svg';
 import lightlogo from '../../../assets/images/logo-light.5034df26.svg';
 import { usethemeUtils } from '../../../context/ThemeWrapper';
 import Button from '@mui/material/Button';
-import Link from '@mui/material/Link'
+import Link from '@mui/material/Link';
 import { useAuthSlice } from '../../../store/authslice/auth';
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 import DarkModeIcon from '@mui/icons-material/DarkModeOutlined';
@@ -13,6 +13,7 @@ import ProblemAutocomplete from '../Problems/ProblemAutocomplete';
 import useProblemsAutocomplete from '../../../hooks/useProblemsAutocomplete';
 import { MappedSearchResult } from '../../../utils/elasticsearchMapper';
 import { useProblemsSearchSlice } from '../../../store/problemsSearchSlice';
+import Tooltip from '@mui/material/Tooltip';
 
 export default function HomeNavbar() {
   const { colorMode, toggleColorMode } = usethemeUtils();
@@ -24,7 +25,21 @@ export default function HomeNavbar() {
   const searchQuery = useProblemsSearchSlice((state) => state.searchQuery);
   const setSearchQuery = useProblemsSearchSlice((state) => state.setSearchQuery);
 
-  const { topResults, isSearching } = useProblemsAutocomplete(searchQuery);
+  const showHomeSearch = location.pathname === '/' && isLogedIn;
+  const activeSearchQuery = showHomeSearch ? searchQuery : '';
+  const { topResults, isSearching } = useProblemsAutocomplete(activeSearchQuery);
+
+  const navLinks =
+    location.pathname === '/'
+      ? [{ to: '/leaderboard', label: 'Leaderboard' }]
+      : location.pathname === '/leaderboard'
+        ? [{ to: '/', label: 'Problems' }]
+        : location.pathname === '/problems'
+          ? [{ to: '/leaderboard', label: 'Leaderboard' }]
+          : [
+              { to: '/', label: 'Problems' },
+              { to: '/leaderboard', label: 'Leaderboard' },
+            ];
 
   const handleAutocompleteSelect = useCallback(
     (_: MappedSearchResult) => {
@@ -40,14 +55,17 @@ export default function HomeNavbar() {
     [setSearchQuery]
   );
 
-  const showHomeSearch = location.pathname === '/' && isLogedIn;
-
   return (
     <nav className='tw-container-lg tw-mx-auto tw-flex tw-items-center tw-justify-between tw-p-2 tw-bottom-2 tw-border-b-[#ffffff24] tw-gap-4'>
       {/* Logo */}
       <Link component={ReactLink} to='/'>
         <div className='tw-flex-shrink-0'>
-          <img src={colorMode === 'light' ? darklogo : lightlogo} className='tw-object-contain logo-img'></img>
+          <img
+            alt='Logo'
+            src={colorMode === 'light' ? darklogo : lightlogo}
+            className='tw-object-contain logo-img'
+            aria-label='Link will redirect to home page'
+          ></img>
         </div>
       </Link>
 
@@ -68,62 +86,23 @@ export default function HomeNavbar() {
         )}
 
         {/* Navigation Links */}
-        {location.pathname === '/' ? (
-          <div className='tw-flex tw-gap-4'>
+        <div className='tw-flex tw-gap-4'>
+          {navLinks.map((link) => (
             <Link
+              key={link.to}
               className={`tw-py-2 tw-px-4 ${colorMode === 'dark' ? 'tw-text-white' : ''}`}
               underline='hover'
               component={ReactLink}
-              to='/leaderboard'
+              to={link.to}
             >
-              Leaderboard
+              {link.label}
             </Link>
-          </div>
-        ) : location.pathname === '/leaderboard' ? (
-          <div className='tw-flex tw-gap-4'>
-            <Link
-              className={`tw-py-2 tw-px-4 ${colorMode === 'dark' ? 'tw-text-white' : ''}`}
-              underline='hover'
-              component={ReactLink}
-              to='/'
-            >
-              Problems
-            </Link>
-          </div>
-        ) : location.pathname === '/problems' ? (
-          <div className='tw-flex tw-gap-4'>
-            <Link
-              className={`tw-py-2 tw-px-4 ${colorMode === 'dark' ? 'tw-text-white' : ''}`}
-              underline='hover'
-              component={ReactLink}
-              to='/leaderboard'
-            >
-              Leaderboard
-            </Link>
-          </div>
-        ) : (
-          <div className='tw-flex tw-gap-4'>
-            <Link
-              className={`tw-py-2 tw-px-4 ${colorMode === 'dark' ? 'tw-text-white' : ''}`}
-              underline='hover'
-              component={ReactLink}
-              to='/'
-            >
-              Problems
-            </Link>
-            <Link
-              className={`tw-py-2 tw-px-4 ${colorMode === 'dark' ? 'tw-text-white' : ''}`}
-              underline='hover'
-              component={ReactLink}
-              to='/leaderboard'
-            >
-              Leaderboard
-            </Link>
-          </div>
-        )}
+          ))}
+        </div>
       </div>
 
       {/* Right Side - Auth & Theme */}
+
       <ul className='tw-list-none tw-flex tw-items-center tw-gap-2 tw-flex-shrink-0'>
         <li className='tw-flex tw-justify-center tw-items-center'>
           {!isLogedIn ? (
@@ -151,13 +130,20 @@ export default function HomeNavbar() {
           )}
         </li>
         <li>
-          <Button className={colorMode === 'dark' ? 'tw-border-white' : ''} variant='text' onClick={toggleColorMode}>
-            {colorMode === 'dark' ? (
-              <LightModeOutlinedIcon sx={{ color: 'white', width: 32, height: 32 }} />
-            ) : (
-              <DarkModeIcon sx={{ width: 32, height: 32 }} />
-            )}
-          </Button>
+          <Tooltip title={colorMode === 'dark' ? 'Light Mode' : 'Dark Mode'}>
+            <Button
+              aria-label={colorMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              className={colorMode === 'dark' ? 'tw-border-white' : ''}
+              variant='text'
+              onClick={toggleColorMode}
+            >
+              {colorMode === 'dark' ? (
+                <LightModeOutlinedIcon titleAccess={`Light Mode`} sx={{ color: 'white', width: 32, height: 32 }} />
+              ) : (
+                <DarkModeIcon titleAccess='Dark Mode' sx={{ width: 32, height: 32 }} />
+              )}
+            </Button>
+          </Tooltip>
         </li>
       </ul>
     </nav>

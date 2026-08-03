@@ -1,30 +1,41 @@
+import type { ReactNode } from 'react';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
+import type { TableCellProps } from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
+import type { ChipProps } from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
 import Avatar from '@mui/material/Avatar';
 import Stack from '@mui/material/Stack';
 import useTheme from '@mui/material/styles/useTheme';
+import type { SxProps, Theme } from '@mui/material/styles';
 import { useUserSlice } from '../../../store/user';
 import { LeaderboardUser } from '../../../utils/types';
-import useLeaderboardStore from '../../../store/leaderboardSlice';
+import useLeaderboardStore from '../../../store';
 import { usethemeUtils } from '../../../context/ThemeWrapper';
 import RankChangeIndicator from './RankChangeIndicator';
 
-const HeaderCell = ({ children, align, theme, colorMode }: any) => (
+type HeaderCellProps = {
+  children: ReactNode;
+  align?: TableCellProps['align'];
+  theme: Theme;
+  colorMode: 'light' | 'dark';
+};
+
+const HeaderCell = ({ children, align, theme, colorMode }: HeaderCellProps) => (
   <TableCell
     align={align}
     sx={{
       fontWeight: 700,
       fontSize: '0.95rem',
-      color: colorMode === 'dark' ? theme.palette.common.light : theme.palette.primary.main,
+      color: colorMode === 'dark' ? theme.palette.common.white : theme.palette.primary.main,
       padding: '16px 12px',
     }}
   >
@@ -32,8 +43,23 @@ const HeaderCell = ({ children, align, theme, colorMode }: any) => (
   </TableCell>
 );
 
-const DataCell = ({ children, align = 'left', sx = {} }: any) => (
-  <TableCell align={align} sx={{ padding: '12px', ...sx }}>
+type DataCellProps = {
+  children: ReactNode;
+  align?: TableCellProps['align'];
+  sx?: SxProps<Theme>;
+};
+
+const DataCell = ({ children, align = 'left', sx }: DataCellProps) => (
+  <TableCell
+    align={align}
+    sx={(theme) => {
+      const resolvedSx = typeof sx === 'function' ? sx(theme) : sx;
+      return {
+        padding: '12px',
+        ...(resolvedSx as Record<string, unknown>),
+      };
+    }}
+  >
     {children}
   </TableCell>
 );
@@ -59,7 +85,7 @@ const RankCell = ({
 );
 
 const DifficultyCell = ({ value, difficulty }: { value: number; difficulty: string }) => {
-  const difficultyColors: Record<string, any> = {
+  const difficultyColors: Record<string, ChipProps['color']> = {
     easy: 'success',
     medium: 'warning',
     hard: 'error',
@@ -100,14 +126,16 @@ export default function LeaderBoardTable() {
   const visibleUsers = useLeaderboardStore((state) => state.visibleUsers());
   const isLoading = useLeaderboardStore((state) => state.leaderboardData.isLoading);
   const error = useLeaderboardStore((state) => state.leaderboardData.error);
-  const currentPage = useLeaderboardStore((state) => state.pagination.currentPage);
-  const pageSize = useLeaderboardStore((state) => state.pagination.pageSize);
   const showRankIndicators = useLeaderboardStore((state) => state.ui.showRankIndicators);
   const user = useUserSlice((state) => state.user);
 
   const getInitials = (username: string): string => {
+    if (!username) {
+      return 'U';
+    }
     return username
       .split(' ')
+      .filter(Boolean)
       .map((word) => word[0])
       .join('')
       .toUpperCase()
@@ -174,7 +202,6 @@ export default function LeaderBoardTable() {
           <TableBody>
             {visibleUsers.map((row: LeaderboardUser, index: number) => {
               const isCurrentUser = user?._id === row.userId;
-              const globalRank = (currentPage - 1) * pageSize + index + 1;
 
               return (
                 <TableRow
@@ -192,7 +219,11 @@ export default function LeaderBoardTable() {
                     borderLeft: isCurrentUser ? `4px solid ${colors.primaryColor}` : 'none',
                   }}
                 >
-                  <RankCell rank={globalRank} showIndicators={showRankIndicators} previousRank={row.previousRank} />
+                  <RankCell
+                    rank={row.currentRank}
+                    showIndicators={showRankIndicators}
+                    previousRank={row.previousRank}
+                  />
 
                   <DataCell>
                     <Stack direction='row' alignItems='center' spacing={1}>

@@ -6,7 +6,7 @@ import Stack from '@mui/material/Stack';
 import Avatar from '@mui/material/Avatar';
 import useTheme from '@mui/material/styles/useTheme';
 import { useUserSlice } from '../../../store/user';
-import useLeaderboardStore from '../../../store/leaderboardSlice';
+import useLeaderboardStore from '../../../store';
 import { usethemeUtils } from '../../../context/ThemeWrapper';
 
 export default function UserStats() {

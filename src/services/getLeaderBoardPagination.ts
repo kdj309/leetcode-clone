@@ -1,20 +1,5 @@
 import { protectedapi } from '../API/Index';
-import { commonresponse } from '../utils/types';
-
-export interface LeaderboardUser {
-  _id: string;
-  userId: string;
-  userName: string;
-  totalPoints: number;
-  easyProblems: number;
-  mediumProblems: number;
-  hardProblems: number;
-  totalSolved: number;
-  currentRank: number;
-  previousRank: number;
-  isOnline: boolean;
-  lastUpdated: Date;
-}
+import { commonresponse, LeaderboardUser } from '../utils/types';
 
 export interface LeaderboardResponse extends Omit<commonresponse, 'data'> {
   data: {

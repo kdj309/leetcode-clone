@@ -20,7 +20,7 @@ export default function Profile() {
   const setUser = useUserSlice((state) => state.setUser);
   const signOut = useAuthSlice((state) => state.signOut);
   const navigate = useNavigate();
-  const { mutateAsync, isError, error } = useMutation({
+  const { mutateAsync } = useMutation({
     mutationKey: ['sign-out'],
     mutationFn: signOutAPI,
   });
@@ -33,14 +33,14 @@ export default function Profile() {
     setAnchorEl(null);
   };
   const handleLogout = async () => {
-    await mutateAsync();
-    if (isError) {
-      console.log(error);
-      return;
+    try {
+      await mutateAsync();
+      setUser(null);
+      signOut();
+      navigate('/signin');
+    } catch (error) {
+      console.error('Logout failed', error);
     }
-    setUser(null);
-    signOut();
-    navigate('/signin');
   };
   return (
     <>
@@ -71,11 +71,16 @@ export default function Profile() {
             {user?.email}
           </Typography>
         </MenuItem>
-        <MenuItem onClick={handleClose}>
-          <ListItemIcon onClick={handleLogout}>
+        <MenuItem
+          onClick={() => {
+            handleLogout();
+            handleClose();
+          }}
+        >
+          <ListItemIcon>
             <LogoutIcon />
           </ListItemIcon>
-          <ListItemText onClick={handleLogout}>Logout</ListItemText>
+          <ListItemText>Logout</ListItemText>
         </MenuItem>
       </Menu>
     </>

@@ -11,7 +11,7 @@ async function submitCode(params: submitCodeArgs) {
     const response = await protectedapi.post(`users/${params.userId}/submissions`, {
       source_code: params.code,
       language_id: params.language_id,
-      stdin: params?.stdin?.replace('\\n', '\n'),
+      stdin: params?.stdin?.replace(/\\n/g, '\n'),
       expected_output: params.expected_output,
       userId: params.userId,
     });

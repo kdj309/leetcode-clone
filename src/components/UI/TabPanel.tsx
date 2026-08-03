@@ -1,14 +1,14 @@
 import { TabPanelProps } from '../../utils/types';
 
 export default function CustomTabPanel(props: TabPanelProps) {
-  const { children, value, innerDivClassName, wrapperClassName, index, ...other } = props;
+  const { children, value, innerDivClassName, wrapperClassName, index, group, ...other } = props;
 
   return (
     <div
+      hidden={value !== index}
+      id={`${group}-tabpanel-${index}`}
+      aria-labelledby={`${group}-tab-${index}`}
       className={wrapperClassName ?? ''}
-      role='tabpanel'
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
       {...other}
     >
       {value === index && <div className={innerDivClassName ?? ''}>{children}</div>}

@@ -81,6 +81,9 @@ interface LeaderboardComputed {
   searchResults: () => LeaderboardUser[];
 }
 
+let lastVisibleUsers: LeaderboardUser[] | null = null;
+let lastVisibleUsersKey: string | null = null;
+
 const INITIAL_STATE: LeaderboardState = {
   leaderboardData: {
     users: [],
@@ -140,10 +143,6 @@ export const useLeaderboardStore = create<LeaderboardState & LeaderboardActions 
               lastFetched,
               isLoading: false,
             },
-            pagination: {
-              ...state.pagination,
-              totalUsers: users.length,
-            },
           }),
           false,
           'setLeaderboardUsers'
@@ -177,16 +176,20 @@ export const useLeaderboardStore = create<LeaderboardState & LeaderboardActions 
           'clearError'
         ),
 
-      setCurrentPage: (page) =>
+      setCurrentPage: (page: number) =>
         set(
-          (state) => ({
-            pagination: {
-              ...state.pagination,
-              currentPage: Math.max(1, Math.min(page, state.pagination.totalPages)),
-              hasPrevPage: page > 1,
-              hasNextPage: page < state.pagination.totalPages,
-            },
-          }),
+          (state) => {
+            const nextPage = Math.max(1, Math.min(page, state.pagination.totalPages));
+
+            return {
+              pagination: {
+                ...state.pagination,
+                currentPage: nextPage,
+                hasNextPage: nextPage < state.pagination.totalPages,
+                hasPrevPage: nextPage > 1,
+              },
+            };
+          },
           false,
           'setCurrentPage'
         ),
@@ -375,7 +378,7 @@ export const useLeaderboardStore = create<LeaderboardState & LeaderboardActions 
         set(
           (state) => {
             const newPageCache = new Map(state.cache.pageCache);
-            newPageCache.set(pageNumber, data);
+            newPageCache.set(pageNumber, { data, cachedAt: Date.now() });
             return {
               cache: { ...state.cache, pageCache: newPageCache },
             };
@@ -390,11 +393,10 @@ export const useLeaderboardStore = create<LeaderboardState & LeaderboardActions 
         if (!cached) {
           return null;
         }
-        const lastCleared = state.cache.lastCacheCleared;
-        if (lastCleared && Date.now() - lastCleared.getTime() > state.cache.cacheDuration) {
+        if (Date.now() - cached.cachedAt > state.cache.cacheDuration) {
           return null;
         }
-        return cached;
+        return cached.data;
       },
 
       clearCache: () =>
@@ -475,10 +477,22 @@ export const useLeaderboardStore = create<LeaderboardState & LeaderboardActions 
 
       visibleUsers: () => {
         const state = get();
-        const filtered = get().filteredUsers() ?? [];
-        const start = (state.pagination.currentPage - 1) * state.pagination.pageSize;
-        const end = start + state.pagination.pageSize;
-        return filtered.slice(start, end);
+        const users = state.leaderboardData.users ?? [];
+        const { currentPage } = state.pagination;
+        const { pageSize } = state.pagination;
+        const start = (currentPage - 1) * pageSize;
+        const end = start + pageSize;
+        const cacheKey = `${users.length}:${start}:${end}:${state.filters.searchQuery}:${state.filters.difficultyFilter}:${state.filters.showOnlineOnly}:${state.filters.timePeriod}`;
+
+        if (lastVisibleUsers && lastVisibleUsersKey === cacheKey) {
+          return lastVisibleUsers;
+        }
+
+        const visibleUsers = users.slice(start, end);
+        lastVisibleUsers = visibleUsers;
+        lastVisibleUsersKey = cacheKey;
+
+        return visibleUsers;
       },
 
       getCurrentUserStats: () => {

@@ -1,29 +1,47 @@
 import { createBrowserRouter } from 'react-router-dom';
-import Home from './Pages/Home';
-import Problem from './Pages/Problem/Index';
-import SignIn from './Pages/SignIn/Index';
-import SignUp from './Pages/SignUp/Index';
 import LeaderBoard from './Pages/LeaderBoard/LeaderBoard';
 import { withProtected } from './Protected';
+import { lazy, Suspense } from 'react';
+import Loader from './UI/Loader';
+const Home = lazy(() => import('./Pages/Home'));
+const Problem = lazy(() => import('./Pages/Problem/Index'));
+const SignIn = lazy(() => import('./Pages/SignIn/Index'));
+const SignUp = lazy(() => import('./Pages/SignUp/Index'));
 
 const ProtectedLeaderBoard = withProtected(LeaderBoard);
 
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <Home />,
+    element: (
+      <Suspense fallback={<Loader />}>
+        <Home />
+      </Suspense>
+    ),
   },
   {
     path: '/problems/:problemname',
-    element: <Problem />,
+    element: (
+      <Suspense fallback={<Loader />}>
+        <Problem />
+      </Suspense>
+    ),
   },
   {
     path: '/signin',
-    element: <SignIn />,
+    element: (
+      <Suspense fallback={<Loader />}>
+        <SignIn />
+      </Suspense>
+    ),
   },
   {
     path: '/signup',
-    element: <SignUp />,
+    element: (
+      <Suspense fallback={<Loader />}>
+        <SignUp />
+      </Suspense>
+    ),
   },
   {
     path: '/leaderboard',

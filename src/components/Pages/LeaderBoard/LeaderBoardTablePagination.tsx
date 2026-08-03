@@ -1,5 +1,4 @@
 import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
@@ -7,15 +6,13 @@ import FormControl from '@mui/material/FormControl';
 import Typography from '@mui/material/Typography';
 import Pagination from '@mui/material/Pagination';
 import useTheme from '@mui/material/styles/useTheme';
-import { useLeaderboardStore } from '../../../store/leaderboardSlice/leaderboard';
+import { useLeaderboardStore } from '../../../store';
 
 export default function LeaderBoardTablePagination() {
   const theme = useTheme();
   const currentPage = useLeaderboardStore((state) => state.pagination.currentPage);
   const pageSize = useLeaderboardStore((state) => state.pagination.pageSize);
   const totalPages = useLeaderboardStore((state) => state.pagination.totalPages);
-  const hasNextPage = useLeaderboardStore((state) => state.pagination.hasNextPage);
-  const hasPrevPage = useLeaderboardStore((state) => state.pagination.hasPrevPage);
   const totalUsers = useLeaderboardStore((state) => state.pagination.totalUsers);
 
   const setCurrentPage = useLeaderboardStore((state) => state.setCurrentPage);
@@ -37,7 +34,12 @@ export default function LeaderBoardTablePagination() {
     >
       <Stack direction='row' spacing={2} alignItems='center'>
         <FormControl size='small' sx={{ minWidth: 120 }}>
-          <Select value={pageSize} onChange={(e) => setPageSize(e.target.value as number)} label='Results per page'>
+          <Select
+            value={pageSize}
+            onChange={(e) => setPageSize(e.target.value as number)}
+            label='Results per page'
+            inputProps={{ 'aria-label': 'Results per page' }}
+          >
             <MenuItem value={10}>10 per page</MenuItem>
             <MenuItem value={25}>25 per page</MenuItem>
             <MenuItem value={50}>50 per page</MenuItem>
@@ -45,8 +47,9 @@ export default function LeaderBoardTablePagination() {
           </Select>
         </FormControl>
         <Typography variant='body2' color='textSecondary'>
-          Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, totalUsers)} of {totalUsers}{' '}
-          users
+          {totalUsers === 0
+            ? 'No users to show'
+            : `Showing ${(currentPage - 1) * pageSize + 1} to ${Math.min(currentPage * pageSize, totalUsers)} of ${totalUsers} users`}
         </Typography>
       </Stack>
 
@@ -58,15 +61,6 @@ export default function LeaderBoardTablePagination() {
         showFirstButton
         showLastButton
       />
-
-      <Stack direction='row' spacing={1}>
-        <Button variant='outlined' size='small' onClick={() => setCurrentPage(currentPage - 1)} disabled={!hasPrevPage}>
-          Previous
-        </Button>
-        <Button variant='outlined' size='small' onClick={() => setCurrentPage(currentPage + 1)} disabled={!hasNextPage}>
-          Next
-        </Button>
-      </Stack>
     </Box>
   );
 }

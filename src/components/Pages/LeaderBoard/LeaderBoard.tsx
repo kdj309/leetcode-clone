@@ -2,23 +2,33 @@ import { useEffect } from 'react';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import useTheme from '@mui/material/styles/useTheme';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import HomeNavbar from '../Home/HomeNavbar';
 import UserStats from './UserStats';
 import LeaderBoardFilters from './LeaderBoardFilters';
 import LeaderBoardTable from './LeaderBoardTable';
-import getLeaderBoardPagination from '../../../services/getLeaderBoardPagination';
 import { useUserSlice } from '../../../store/user';
-import useLeaderboardStore from '../../../store/leaderboardSlice';
+import useLeaderboardStore from '../../../store';
 import LeaderBoardTablePagination from './LeaderBoardTablePagination';
+import useDebounce from '../../../hooks/useDebounce';
+import { getLeaderboardFilters } from '../../../services/getLeaderboardFilters';
 
 const getSseUrl = () => {
-  const baseUrl = import.meta.env.VITE_API_BASE_URL;
-  return new URL('/leaderboard/events', baseUrl).toString();
+  const baseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
+
+  if (!baseUrl) {
+    throw new Error('VITE_API_BASE_URL is not configured');
+  }
+
+  const normalizedBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+  const safeBase = normalizedBase.startsWith('http') ? normalizedBase : `https://${normalizedBase}`;
+
+  return new URL('leaderboard/events', `${safeBase}/`).toString();
 };
 
 export default function LeaderBoard() {
   const theme = useTheme();
+  const queryClient = useQueryClient();
   const currentUser = useUserSlice((state) => state.user);
   const setLeaderboardUsers = useLeaderboardStore((state) => state.setLeaderboardUsers);
   const setLoading = useLeaderboardStore((state) => state.setLoading);
@@ -29,25 +39,35 @@ export default function LeaderBoard() {
   const updateRealtimeData = useLeaderboardStore((state) => state.updateRealtimeData);
   const currentPage = useLeaderboardStore((state) => state.pagination.currentPage);
   const pageSize = useLeaderboardStore((state) => state.pagination.pageSize);
+  const searchQuery = useLeaderboardStore((state) => state.filters.searchQuery);
+  const timePeriod = useLeaderboardStore((state) => state.filters.timePeriod);
+  const debouncedSearch = useDebounce(searchQuery, 500);
 
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: ['leaderboard', currentPage, pageSize],
-    queryFn: () => getLeaderBoardPagination(currentPage, pageSize),
+    queryKey: ['leaderboard', currentPage, pageSize, debouncedSearch.trim(), timePeriod],
+    queryFn: () =>
+      getLeaderboardFilters({
+        userName: debouncedSearch.trim() || undefined,
+        period: timePeriod === 'all' ? undefined : timePeriod,
+        page: currentPage,
+        limit: pageSize,
+      }),
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 5,
   });
 
   useEffect(() => {
-    if (data?.data && Array.isArray(data.data.users) && data.data.pagination) {
-      setLeaderboardUsers(data.data.users || [], new Date());
+    if (data?.users && Array.isArray(data.users)) {
+      setError(null);
+      setLeaderboardUsers(data.users || [], new Date());
       setPaginationState({
-        totalPages: data.data.pagination.totalPages ?? 1,
-        totalUsers: data.data.pagination.totalUsers ?? 0,
-        hasNextPage: data.data.pagination.hasNextPage ?? false,
-        hasPrevPage: data.data.pagination.hasPrevPage ?? false,
+        totalPages: data.pagination?.totalPages ?? 1,
+        totalUsers: data.pagination?.totalUsers ?? data.users.length,
+        hasNextPage: data.pagination?.hasNextPage ?? false,
+        hasPrevPage: data.pagination?.hasPrevPage ?? false,
       });
     }
-  }, [data, setLeaderboardUsers, setPaginationState]);
+  }, [data, setError, setLeaderboardUsers, setPaginationState]);
 
   useEffect(() => {
     setLoading(isLoading);
@@ -67,7 +87,16 @@ export default function LeaderBoard() {
   }, [currentUser, setCurrentUser]);
 
   useEffect(() => {
-    const sseUrl = getSseUrl();
+    let sseUrl = '';
+
+    try {
+      sseUrl = getSseUrl();
+    } catch (error) {
+      console.error('Failed to build leaderboard SSE URL', error);
+      setRealtimeConnected(false);
+      return;
+    }
+
     const eventSource = new EventSource(sseUrl, { withCredentials: true });
 
     eventSource.onopen = () => {
@@ -87,13 +116,7 @@ export default function LeaderBoard() {
         updateRealtimeData([update]);
 
         if (payload?.data?.data && Array.isArray(payload.data.data)) {
-          setLeaderboardUsers(payload.data.data, new Date());
-          setPaginationState({
-            totalPages: Math.max(1, Math.ceil(payload.data.data.length / pageSize)),
-            totalUsers: payload.data.data.length,
-            hasNextPage: false,
-            hasPrevPage: false,
-          });
+          queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
         }
       } catch (error) {
         console.error('Failed to parse leaderboard SSE payload', error);
@@ -108,7 +131,7 @@ export default function LeaderBoard() {
       eventSource.close();
       setRealtimeConnected(false);
     };
-  }, [pageSize, setLeaderboardUsers, setPaginationState, setRealtimeConnected, updateRealtimeData]);
+  }, [setLeaderboardUsers, setPaginationState, setRealtimeConnected, updateRealtimeData]);
 
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: theme.palette.background.default }}>

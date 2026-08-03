@@ -94,13 +94,25 @@ export default function ProblemsSet() {
     refetchOnWindowFocus: false,
   });
 
-  // Update slice with paginated problems for Navbar random navigation
+  const { data: navigationProblemsData } = useQuery({
+    queryKey: ['problems-navigation', { page: 1, limit: 1000 }],
+    queryFn: ({ queryKey }) => {
+      const [_, objAtIndex1] = queryKey;
+      const { page: pageVal, limit: limitVal } = objAtIndex1 as { page: number; limit: number };
+      return getProblems(pageVal, limitVal);
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  // Update slice with the full catalog for Navbar navigation
   const { setProblems } = useProblemSlice();
   useEffect(() => {
-    if (defaultProblemsData?.problems && defaultProblemsData.problems.length > 0) {
-      setProblems(defaultProblemsData.problems);
+    if (navigationProblemsData?.problems && navigationProblemsData.problems.length > 0) {
+      setProblems(navigationProblemsData.problems);
     }
-  }, [defaultProblemsData?.problems, setProblems]);
+  }, [navigationProblemsData?.problems, setProblems]);
 
   const tableData = useMemo(() => {
     if (searchQuery.trim().length > 0) {

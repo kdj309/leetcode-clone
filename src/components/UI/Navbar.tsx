@@ -23,6 +23,7 @@ import { useCallback, useMemo, useReducer } from 'react';
 import CustomDrawer from './Drawer';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
+import Tooltip from '@mui/material/Tooltip';
 
 export default function Navbar({
   problemExecuteHandler,
@@ -94,6 +95,8 @@ export default function Navbar({
                   src={colorMode === 'light' ? lightlogo : darklogo}
                   width={20}
                   height={20}
+                  alt='Logo'
+                  aria-label='Link will redirect to home page'
                 ></img>
               ) : (
                 <img
@@ -101,6 +104,8 @@ export default function Navbar({
                   src={colorMode === 'light' ? leetcodedarklogo : leetcodelightlogo}
                   width={100}
                   height={80}
+                  alt='Logo'
+                  aria-label='Link will redirect to home page'
                 ></img>
               )}
             </Link>
@@ -200,17 +205,20 @@ export default function Navbar({
               )}
             </li>
             <li className='tw-p-1'>
-              <Button
-                className={colorMode === 'dark' ? 'tw-border-white' : ''}
-                variant='text'
-                onClick={toggleColorMode}
-              >
-                {colorMode === 'dark' ? (
-                  <LightModeIcon sx={{ width: 32, height: 32, color: 'white' }} />
-                ) : (
-                  <DarkModeIcon sx={{ width: 32, height: 32 }} />
-                )}
-              </Button>
+              <Tooltip title={colorMode === 'dark' ? 'Light Mode' : 'Dark Mode'}>
+                <Button
+                  className={colorMode === 'dark' ? 'tw-border-white' : ''}
+                  variant='text'
+                  onClick={toggleColorMode}
+                  aria-label={colorMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                >
+                  {colorMode === 'dark' ? (
+                    <LightModeIcon titleAccess={`Light Mode`} sx={{ width: 32, height: 32, color: 'white' }} />
+                  ) : (
+                    <DarkModeIcon titleAccess='Dark Mode' sx={{ width: 32, height: 32 }} />
+                  )}
+                </Button>
+              </Tooltip>
             </li>
           </ul>
         </ul>
