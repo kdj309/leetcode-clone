@@ -80,10 +80,10 @@ export default function Problem() {
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { isFullScreenEnabled, toggleFullScreen } = useFullScreen();
-  const { postMessage } = useBroadcastChannel<{ type: string; submissions: problemsubmission[] }>(
+  const { postMessage } = useBroadcastChannel<{ type: string; submissions: problemsubmission[],userId: string }>(
     'submission-sync',
     (data) => {
-      if (data.type === 'submission') {
+      if (data.type === 'submission' && data.userId === user?._id) {
         setUser({
           ...(user as user),
           submissions: [...(user?.submissions ?? []), ...data.submissions],
@@ -387,6 +387,7 @@ export default function Problem() {
               submittedAt: new Date(),
             },
           ],
+          userId: user?._id as string,
         });
       } catch (error) {
         setProblemSubmissionLoading(false);
