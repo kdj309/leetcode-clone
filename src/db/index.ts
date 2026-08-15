@@ -138,7 +138,7 @@ class CodeStorageDB {
         delete solutions[languageId];
 
         const putRequest =
-          Object.keys(solutions).length === 0 ? store.delete(problemId) : store.put(solutions, problemId);
+          Object.keys(solutions).length === 0 ? store.delete(key) : store.put(solutions, key);
 
         putRequest.onsuccess = () => resolve();
         putRequest.onerror = (event: Event) => {

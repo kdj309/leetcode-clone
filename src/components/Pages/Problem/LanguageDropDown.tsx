@@ -21,6 +21,7 @@ export default function LanguageDropDown({
       <Select
         id='language'
         value={language}
+        labelId='language-label'
         label={label}
         onChange={(event) => handleChange(parseInt(event.target.value as string))}
         size='small'

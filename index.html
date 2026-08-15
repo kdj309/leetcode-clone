@@ -13,32 +13,6 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <script type="text/javascript">
-  const newRelicConfig = window.__NEW_RELIC_CONFIG__ || {};
-  if (newRelicConfig.enabled) {
-    window.NREUM ||= {};
-    window.NREUM.init = { distributed_tracing: { enabled: true }, privacy: { cookies_enabled: true }, ajax: { deny_list: ['bam.nr-data.net'] } };
-    window.NREUM.loader_config = {
-      accountID: newRelicConfig.accountId || '',
-      trustKey: newRelicConfig.accountId || '',
-      agentID: newRelicConfig.agentId || '',
-      licenseKey: newRelicConfig.licenseKey || '',
-      applicationID: newRelicConfig.applicationId || '',
-    };
-    window.NREUM.info = {
-      beacon: newRelicConfig.beacon || 'bam.nr-data.net',
-      errorBeacon: newRelicConfig.beacon || 'bam.nr-data.net',
-      licenseKey: newRelicConfig.licenseKey || '',
-      applicationID: newRelicConfig.applicationId || '',
-      sa: 1,
-    };
-    const script = document.createElement('script');
-    script.src = newRelicConfig.loaderUrl || 'https://js-agent.newrelic.com/nr-loader-spa-1.293.0.min.js';
-    script.async = true;
-    document.head.appendChild(script);
-  }
-</script>
-
 
   </body>
 </html>

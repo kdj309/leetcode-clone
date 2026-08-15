@@ -55,6 +55,8 @@ export default function Problem() {
   const editorRef = useRef(null);
   const user = useUserSlice((state) => state.user);
   const setUser = useUserSlice((state) => state.setUser);
+  const appendSubmissions = useUserSlice((state) => state.appendSubmissions);
+
   const { colorMode } = usethemeUtils();
   const [open, setOpen] = useState<boolean>(true);
   const [language, setLanguage] = useState<number>(user?.favoriteProgrammingLanguage ?? 93);
@@ -83,12 +85,8 @@ export default function Problem() {
   const { postMessage } = useBroadcastChannel<{ type: string; submissions: problemsubmission[],userId: string }>(
     'submission-sync',
     (data) => {
-      if (data.type === 'submission' && data.userId === user?._id) {
-        setUser({
-          ...(user as user),
-          submissions: [...(user?.submissions ?? []), ...data.submissions],
-        });
-      }
+     if (data.type !== 'submission') return;
+      appendSubmissions(data.userId, data.submissions);
     }
   );
 
@@ -698,7 +696,7 @@ export default function Problem() {
                           <span>{`Case ${i + 1}`}</span>
                         </div>
                       }
-                      {...a11yProps(`Case ${i + 1}`, i)}
+                      {...a11yProps(`execution-case-tabs`, i)}
                     ></Tab>
                   ))}
                 </Tabs>
@@ -707,7 +705,7 @@ export default function Problem() {
                       const inputvalues = s.stdin.split('\n');
                       return (
                         <CustomTabPanel
-                          group='code-test-output-tabs'
+                          group='execution-case-tabs'
                           index={i}
                           key={`language${s.language_id}`}
                           value={submissionTab}

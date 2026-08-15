@@ -1,12 +1,13 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { user } from '../../utils/types';
+import { problemsubmission, user } from '../../utils/types';
 import validateSession from '../../services/validateSession';
 
 interface userSlice {
   user: user | null;
   setUser: (user: user | null) => void;
   checkSession: () => Promise<void>;
+  appendSubmissions: (userId: string, submissions: problemsubmission[]) => void; 
   sessionLoading: string;
 }
 export const useUserSlice = create<userSlice>()(
@@ -15,6 +16,20 @@ export const useUserSlice = create<userSlice>()(
       user: null,
       setUser: (user) => set(() => ({ user: user }), false, 'setUser'),
       sessionLoading: 'Not Started',
+      appendSubmissions: (userId: string, submissions: problemsubmission[]) =>
+        set(
+          (state) => {
+            if (!state.user || state.user._id !== userId) return {};
+            return {
+              user: {
+                ...state.user,
+                submissions: [...(state.user.submissions ?? []), ...submissions],
+              },
+            };
+          },
+          false,
+          'appendSubmissions'
+        ),
       checkSession: async () => {
         try {
           set({ sessionLoading: 'Loading' }, false, 'checkSession/loading');
