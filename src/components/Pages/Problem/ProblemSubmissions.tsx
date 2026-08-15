@@ -18,7 +18,8 @@ import { problemsubmissionstatus } from '../../../utils/types';
 import { supportedLanguages } from '../../../constants/Index';
 import { usethemeUtils } from '../../../context/ThemeWrapper';
 import styled from '@emotion/styled';
-import { Paper, Typography } from '@mui/material';
+import Paper from '@mui/material/Paper';
+import Typography from '@mui/material/Typography';
 import TablePaginationActions from '../Problems/ProblemTableActions';
 export default function ProblemSubmissions({ data }: { data: problemsubmissionstatus[] }) {
   const columnHelper = createColumnHelper<problemsubmissionstatus>();
@@ -29,7 +30,7 @@ export default function ProblemSubmissions({ data }: { data: problemsubmissionst
         id: 'Status',
         cell: (info) => {
           const value = info.getValue();
-          return <Typography color={value === 'Accepted' ? 'success' : 'error'}> {value}</Typography>;
+          return <Typography color={value.toUpperCase() === 'ACCEPTED' ? 'success' : 'error'}> {value.toUpperCase()}</Typography>;
         },
       }),
       columnHelper.accessor((row) => row.languageId, {

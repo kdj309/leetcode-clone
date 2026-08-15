@@ -1,4 +1,11 @@
-import { Avatar, IconButton, ListItemIcon, Menu, MenuItem, Tooltip, Typography } from '@mui/material';
+import Avatar from '@mui/material/Avatar';
+import IconButton from '@mui/material/IconButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import Tooltip from '@mui/material/Tooltip';
+import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 import { useUserSlice } from '../../store/user';
 import EmailIcon from '@mui/icons-material/Email';
@@ -13,7 +20,7 @@ export default function Profile() {
   const setUser = useUserSlice((state) => state.setUser);
   const signOut = useAuthSlice((state) => state.signOut);
   const navigate = useNavigate();
-  const { mutateAsync, isError, error } = useMutation({
+  const { mutateAsync } = useMutation({
     mutationKey: ['sign-out'],
     mutationFn: signOutAPI,
   });
@@ -24,6 +31,16 @@ export default function Profile() {
   };
   const handleClose = () => {
     setAnchorEl(null);
+  };
+  const handleLogout = async () => {
+    try {
+      await mutateAsync();
+      setUser(null);
+      signOut();
+      navigate('/signin');
+    } catch (error) {
+      console.error('Logout failed', error);
+    }
   };
   return (
     <>
@@ -54,22 +71,16 @@ export default function Profile() {
             {user?.email}
           </Typography>
         </MenuItem>
-        <MenuItem onClick={handleClose}>
-          <ListItemIcon
-            onClick={async () => {
-              await mutateAsync();
-              if (isError) {
-                console.log(error);
-                return;
-              }
-              setUser(null);
-              signOut();
-              navigate('/signin');
-            }}
-          >
+        <MenuItem
+          onClick={() => {
+            handleLogout();
+            handleClose();
+          }}
+        >
+          <ListItemIcon>
             <LogoutIcon />
           </ListItemIcon>
-          Logout
+          <ListItemText>Logout</ListItemText>
         </MenuItem>
       </Menu>
     </>

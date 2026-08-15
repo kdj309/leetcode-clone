@@ -1,27 +1,38 @@
-.problem-container{
+.problem-container {
     display: grid;
     grid-template-rows: 1fr;
-    grid-template-columns:1fr 6px 1fr;
+    grid-template-columns: 1fr 6px 1fr;
     transition: all 0.3s ease-in-out;
 }
-.problem-container.expanded{
-    grid-template-columns:1fr;
+
+.problem-container.expanded {
+    grid-template-columns: 1fr;
 }
-.problem-container.leftshrinked{
-    grid-template-columns:5% 95%;
+
+.problem-container.leftshrinked {
+    grid-template-columns: 5% 95%;
 }
-.problem-container.rightshrinked{
-    grid-template-columns:95% 5%;
+
+.problem-container.rightshrinked {
+    grid-template-columns: 95% 5%;
 }
-.problem-layout{
+
+.problem-layout {
     height: 100%;
     max-height: calc(100% - 70px);
 }
-.problem-resizer{
+
+.problem-resizer {
     cursor: ew-resize;
-     width: 5px;
-     order: 2
+    width: 5px;
+    order: 2
 }
-.problem-resizer:hover{
+
+.problem-resizer:hover {
     background-color: #1a90ff;
+}
+
+.logo-img {
+    width: 100px;
+    height: 42px
 }

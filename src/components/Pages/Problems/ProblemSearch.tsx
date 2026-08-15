@@ -1,4 +1,6 @@
-import { IconButton, InputAdornment, OutlinedInput } from '@mui/material';
+import IconButton from '@mui/material/IconButton';
+import InputAdornment from '@mui/material/InputAdornment';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import ClearOutlinedIcon from '@mui/icons-material/ClearOutlined';
 
 export default function ProblemSearch({

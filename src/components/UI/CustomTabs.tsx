@@ -1,5 +1,6 @@
-import { Tab, Tabs } from '@mui/material';
+import Tabs from '@mui/material/Tabs';
 import React from 'react';
+import Tab from '@mui/material/Tab';
 import { a11yProps } from '../../utils/helpers';
 interface TabsProps {
   tabs: string[];
@@ -8,7 +9,9 @@ interface TabsProps {
   value: any;
   orientation?: 'vertical' | 'horizontal';
   onChange: ((event: React.SyntheticEvent, value: any) => void) | undefined;
+  group?: string;
 }
+
 const CustomTabs: React.FC<TabsProps> = ({
   tabs,
   className,
@@ -16,17 +19,12 @@ const CustomTabs: React.FC<TabsProps> = ({
   value,
   orientation = 'horizontal',
   onChange,
+  group = 'custom-tabs',
 }) => {
   return (
     <Tabs value={value} onChange={onChange} orientation={orientation}>
       {tabs.map((tab, id) => (
-        <Tab
-          key={`${tab}${id}`}
-          className={className}
-          sx={{ writingMode: writingMode }}
-          label={tab}
-          {...a11yProps(id)}
-        ></Tab>
+        <Tab key={id} value={id} label={tab} className={className} sx={{ writingMode }} {...a11yProps(group, id)} />
       ))}
     </Tabs>
   );

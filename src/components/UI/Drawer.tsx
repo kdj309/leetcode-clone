@@ -1,15 +1,13 @@
-import {
-  Drawer,
-  List,
-  Typography,
-  ListItem,
-  ListItemText,
-  ListItemButton,
-  Divider,
-  Stack,
-  IconButton,
-  capitalize,
-} from '@mui/material';
+import Drawer from '@mui/material/Drawer';
+import List from '@mui/material/List';
+import Typography from '@mui/material/Typography';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
+import ListItemButton from '@mui/material/ListItemButton';
+import Divider from '@mui/material/Divider';
+import Stack from '@mui/material/Stack';
+import IconButton from '@mui/material/IconButton';
+import capitalize from '@mui/material/utils/capitalize';
 import { SavedProblems } from '../../utils/types';
 import { useNavigate, useParams } from 'react-router-dom';
 import { difficultyColors } from '../../constants/Index';

@@ -11,6 +11,10 @@ class CodeStorageDB {
 
   private db: IDBDatabase | null;
 
+  private getStorageKey(userId: string, problemId: string): string {
+    return `${userId}:${problemId}`;
+  }
+
   constructor() {
     this.dbName = 'CodeSolutionsDB';
     this.storeName = 'solutions';
@@ -18,7 +22,7 @@ class CodeStorageDB {
     this.db = null;
   }
 
-  async initDB(): Promise<IDBDatabase> {
+  initDB(): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
       const request: IDBOpenDBRequest = indexedDB.open(this.dbName, this.version);
 
@@ -41,22 +45,23 @@ class CodeStorageDB {
     });
   }
 
-  async saveCode(problemId: string, languageId: number, code: string): Promise<string> {
+  async saveCode(problemId: string, languageId: number, code: string, userId: string): Promise<string> {
     if (!this.db) {
       await this.initDB();
     }
+    const key = this.getStorageKey(userId, problemId);
 
     return new Promise((resolve, reject) => {
       const transaction = this.db!.transaction([this.storeName], 'readwrite');
       const store = transaction.objectStore(this.storeName);
 
-      const getRequest = store.get(problemId);
+      const getRequest = store.get(key);
 
       getRequest.onsuccess = (event: Event) => {
         const solutions: CodeSolutions = (event.target as IDBRequest).result || {};
         solutions[languageId] = code;
 
-        const putRequest = store.put(solutions, problemId);
+        const putRequest = store.put(solutions, key);
 
         putRequest.onsuccess = () => resolve('Code saved successfully');
         putRequest.onerror = (event: Event) => {
@@ -72,15 +77,16 @@ class CodeStorageDB {
     });
   }
 
-  async getCode(problemId: string): Promise<Record<number, string>> {
+  async getCode(problemId: string, userId: string): Promise<Record<number, string>> {
     if (!this.db) {
       await this.initDB();
     }
+    const key = this.getStorageKey(userId, problemId);
 
     return new Promise((resolve, reject) => {
       const transaction = this.db!.transaction([this.storeName], 'readonly');
       const store = transaction.objectStore(this.storeName);
-      const request = store.get(problemId);
+      const request = store.get(key);
 
       request.onsuccess = (event: Event) => {
         const solutions: CodeSolutions = (event.target as IDBRequest).result || {};
@@ -115,23 +121,24 @@ class CodeStorageDB {
     });
   }
 
-  async deleteSolution(problemId: string, languageId: number): Promise<void> {
+  async deleteSolution(problemId: string, languageId: number, userId: string): Promise<void> {
     if (!this.db) {
       await this.initDB();
     }
+    const key = this.getStorageKey(userId, problemId);
 
     return new Promise((resolve, reject) => {
       const transaction = this.db!.transaction([this.storeName], 'readwrite');
       const store = transaction.objectStore(this.storeName);
 
-      const getRequest = store.get(problemId);
+      const getRequest = store.get(key);
 
       getRequest.onsuccess = (event: Event) => {
         const solutions: CodeSolutions = (event.target as IDBRequest).result || {};
         delete solutions[languageId];
 
         const putRequest =
-          Object.keys(solutions).length === 0 ? store.delete(problemId) : store.put(solutions, problemId);
+          Object.keys(solutions).length === 0 ? store.delete(key) : store.put(solutions, key);
 
         putRequest.onsuccess = () => resolve();
         putRequest.onerror = (event: Event) => {
@@ -146,18 +153,18 @@ class CodeStorageDB {
 const codeDB = new CodeStorageDB();
 
 function useCodeStorage() {
-  const saveUserCode = async (problemId: string, languageId: number, code: string): Promise<void> => {
+  const saveUserCode = async (problemId: string, languageId: number, code: string, userId: string): Promise<void> => {
     try {
-      await codeDB.saveCode(problemId, languageId, code);
+      await codeDB.saveCode(problemId, languageId, code, userId);
       console.log('Code saved successfully');
     } catch (error) {
       console.error('Error saving code:', error);
     }
   };
 
-  const getUserCode = async (problemId: string): Promise<Record<number, string>> => {
+  const getUserCode = async (problemId: string, userId: string): Promise<Record<number, string>> => {
     try {
-      return await codeDB.getCode(problemId);
+      return await codeDB.getCode(problemId, userId);
     } catch (error) {
       console.error('Error retrieving code:', error);
       return '';

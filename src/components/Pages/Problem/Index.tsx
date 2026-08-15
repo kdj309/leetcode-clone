@@ -1,24 +1,35 @@
+import React from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { Monaco } from '@monaco-editor/react';
-import * as monaco from '@monaco-editor/react';
 import { useMutation } from '@tanstack/react-query';
 import getProblem from '../../../services/getProblem';
-import { Alert, Backdrop, CircularProgress, IconButton, Stack, Tab, Tabs, Typography } from '@mui/material';
+import Alert from '@mui/material/Alert';
+import Backdrop from '@mui/material/Backdrop';
+import CircularProgress from '@mui/material/CircularProgress';
+import IconButton from '@mui/material/IconButton';
+import Stack from '@mui/material/Stack';
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
+import Typography from '@mui/material/Typography';
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import Layout from '../../UI/Layout';
 import { usethemeUtils } from '../../../context/ThemeWrapper';
 import LanguageDropDown from './LanguageDropDown';
-import { darktheme, lighttheme, supportedLanguages, theme } from '../../../constants/Index';
+import { supportedLanguages } from '../../../constants/Index';
 import { useAuthSlice } from '../../../store/authslice/auth';
 import submitCode from '../../../services/sumbitCode';
 import getStatus from '../../../services/getSubmissionStatus';
 import { a11yProps, getGridColumnStyles, getGridTemplateColumns, getResult } from '../../../utils/helpers';
 import CustomTabPanel from '../../UI/TabPanel';
-import { Problem as ProblemType, problemsubmissionstatus, submission, user } from '../../../utils/types';
+import {
+  Problem as ProblemType,
+  problemsubmission,
+  problemsubmissionstatus,
+  submission,
+  user,
+} from '../../../utils/types';
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 import { useUserSlice } from '../../../store/user';
 import SkeletonResultsLoader from '../../UI/SkeletonResultsLoader';
-import addSubmission from '../../../services/addSubmission';
 import batchwiseSubmission from '../../../services/batchwiseSubmission';
 import ProblemSubmissions from './ProblemSubmissions';
 import SettingsOverscanOutlinedIcon from '@mui/icons-material/SettingsOverscanOutlined';
@@ -26,7 +37,6 @@ import CloseFullscreenOutlinedIcon from '@mui/icons-material/CloseFullscreenOutl
 import ChevronLeftOutlinedIcon from '@mui/icons-material/ChevronLeftOutlined';
 import ChevronRightOutlinedIcon from '@mui/icons-material/ChevronRightOutlined';
 import ProblemDescription from './ProblemInfo';
-import CodeEditor from './CodeEditor';
 import CustomTabs from '../../UI/CustomTabs';
 import ProblemResults from './ProblemResults';
 import ProblemSubmissionStatus from './ProblemSubmissionStatus';
@@ -36,12 +46,17 @@ import { useCodeStorage } from '../../../db';
 import OpenInFullOutlinedIcon from '@mui/icons-material/OpenInFullOutlined';
 import RestoreOutlinedIcon from '@mui/icons-material/RestoreOutlined';
 import useFullScreen from '../../../hooks/useFullScreen';
+import updateSubmission from '../../../services/updateSubmission';
+import { useBroadcastChannel } from '../../../hooks/useBroadCastChannel';
+const CodeEditor = React.lazy(() => import('./CodeEditor'));
 
 export default function Problem() {
   const { problemname } = useParams();
   const editorRef = useRef(null);
   const user = useUserSlice((state) => state.user);
   const setUser = useUserSlice((state) => state.setUser);
+  const appendSubmissions = useUserSlice((state) => state.appendSubmissions);
+
   const { colorMode } = usethemeUtils();
   const [open, setOpen] = useState<boolean>(true);
   const [language, setLanguage] = useState<number>(user?.favoriteProgrammingLanguage ?? 93);
@@ -67,6 +82,13 @@ export default function Problem() {
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { isFullScreenEnabled, toggleFullScreen } = useFullScreen();
+  const { postMessage } = useBroadcastChannel<{ type: string; submissions: problemsubmission[],userId: string }>(
+    'submission-sync',
+    (data) => {
+     if (data.type !== 'submission') return;
+      appendSubmissions(data.userId, data.submissions);
+    }
+  );
 
   const [isLeftPanelExpanded, toggleLeftPanelExpansion] = useReducer((state) => {
     if (state && editorRef.current) {
@@ -119,7 +141,7 @@ export default function Problem() {
         setIsProblemLoading(false);
         if (problemResponse?.status === 'Success') {
           setProblemInfo(problemResponse.data);
-          const storedCode = await getUserCode(problemname?.slice(0, 24) as string);
+          const storedCode = await getUserCode(problemname?.slice(0, 24) as string, user?._id ?? '');
           if (Object.keys(storedCode).length) {
             if (!storedCode[language]) {
               setCode({
@@ -143,27 +165,21 @@ export default function Problem() {
         setErrorInfoProblemFetch(error);
       }
     }
-  }, [problemname]);
+  }, [problemname, user]);
   useEffect(() => {
     if (user?.submissions.length) {
       setProblemSubmissions(user?.submissions.filter((sub) => sub.problemId === problemname?.slice(0, 24)));
     }
-  }, [user?.submissions.length, problemname]);
-  useEffect(() => {
-    monaco.loader.init().then((monacoinstance: Monaco) => {
-      monacoinstance.editor.defineTheme('mylightTheme', lighttheme as theme);
-      monacoinstance.editor.defineTheme('mydarkTheme', darktheme as theme);
-    });
-  }, [colorMode]);
-  const { mutateAsync } = useMutation({
+  }, [user?.submissions, problemname]);
+  const { mutateAsync: submitProblem } = useMutation({
     mutationKey: ['codesubmission'],
     mutationFn: submitCode,
   });
-  const { mutateAsync: updateSubmitMutateAsync } = useMutation({
-    mutationKey: ['updatesubmission'],
-    mutationFn: addSubmission,
-  });
 
+  const { mutateAsync: updateUserSubmissionById } = useMutation({
+    mutationKey: ['updatesubmissionById'],
+    mutationFn: updateSubmission,
+  });
   const firstPanelTabLabels = useMemo(() => ['Description', 'Submissions'], []);
   const secondPanelTabLabels = useMemo(() => ['Code', 'Test Results', 'Output'], []);
   const handleClose = () => {
@@ -265,14 +281,18 @@ export default function Problem() {
         setCurrentTab(1);
         const testcases = problemInfo?.testCases;
         const [firsttestcase] = testcases;
-        const response = await mutateAsync({
+        const response = await submitProblem({
           code,
           expected_output: firsttestcase.output,
-          input: firsttestcase.input,
+          stdin: firsttestcase.input,
           language_id: language,
+          userId: user?._id as string,
         });
-        setSubmissionId(response?.data.token);
-        await getSubmission(response?.data.token);
+        console.log(response);
+        setSubmissionId(response?.data?.data);
+        const problemSubmissionData = await getSubmission(response?.data?.data);
+
+        console.log({ problemSubmissionData });
       } catch (error) {
         setIsSumbitted(false);
         console.log(error);
@@ -298,6 +318,7 @@ export default function Problem() {
               source_code: code,
               stdin: input,
               expected_output: output,
+              problemId: problemname?.slice(0, 24) as string,
             });
           }
         }
@@ -305,11 +326,12 @@ export default function Problem() {
       try {
         setCurrentTab(2);
         setProblemSubmissionLoading(true);
-        const batchwiseresponse = await batchwiseSubmission(submissionbatch);
+        const batchwiseresponses = await batchwiseSubmission(user?._id as string, submissionbatch);
         // @ts-ignore
         const batchwiseresponsepromises = [];
-        batchwiseresponse?.forEach((submission) => {
-          batchwiseresponsepromises.push(getSubmission(submission.token));
+        setSubmissionId(batchwiseresponses?._id as string);
+        batchwiseresponses?.submissionIds.forEach((submissiontoken) => {
+          batchwiseresponsepromises.push(getSubmission(submissiontoken));
         });
         // @ts-ignore
         const batchwiseresults = await Promise.all(batchwiseresponsepromises);
@@ -325,13 +347,19 @@ export default function Problem() {
           problemId: problemname?.slice(0, 24) as string,
           languageId: language,
           status: status ? 'Accepted' : 'Wrong Answer',
-          submissionId: submissionId,
+          submissionId: batchwiseresponses?._id as string,
           submittedAt: new Date(),
+          actual_output: batchwiseresults.map((r) => r.stdout),
+          memoryUsed: batchwiseresults.map((r) => r.memory),
+          executionTime: batchwiseresults.map((r) => r.time),
+          difficulty: problemInfo.difficulty,
         };
-        const submissionupdateResponse = await updateSubmitMutateAsync({
-          id: user?._id as string,
-          newsubmission: updatesubmissionbody,
+        const submissionUpdateResponse = await updateUserSubmissionById({
+          submissionId: batchwiseresponses?._id as string,
+          userId: user?._id as string,
+          updateduser: updatesubmissionbody,
         });
+        console.log(submissionUpdateResponse);
         setProblemSubmissions((prev) => [...prev, updatesubmissionbody]);
         setUser({
           ...(user as user),
@@ -339,19 +367,33 @@ export default function Problem() {
             ...(user?.submissions ?? []),
             {
               problemId: problemname?.slice(0, 24) as string,
-              submissionId: submissionupdateResponse?.data._id as string,
+              submissionId: batchwiseresponses?._id as string,
               languageId: language,
-              status: status ? 'Accepted' : 'Wrong Answer',
+              status: status ? 'accepted' : 'wrong answer',
               submittedAt: new Date(),
             },
           ],
         });
+        postMessage({
+          type: 'submission',
+          submissions: [
+            {
+              problemId: problemname?.slice(0, 24) as string,
+              submissionId: batchwiseresponses?._id as string,
+              languageId: language,
+              status: status ? 'accepted' : 'wrong answer',
+              submittedAt: new Date(),
+            },
+          ],
+          userId: user?._id as string,
+        });
       } catch (error) {
         setProblemSubmissionLoading(false);
         setProblemSubmissionStatus('Rejected');
-        await updateSubmitMutateAsync({
-          id: user?._id as string,
-          newsubmission: {
+        await updateUserSubmissionById({
+          submissionId,
+          userId: user?._id as string,
+          updateduser: {
             problemId: problemname?.slice(0, 24) as string,
             languageId: language,
             status: 'Wrong Answer',
@@ -417,6 +459,7 @@ export default function Problem() {
               value={leftTab}
               onChange={(event: React.SyntheticEvent, value: any) => handleTabChange(event, value, 'firstpaneltabs')}
               orientation='vertical'
+              group='description-submission-tabs'
             ></CustomTabs>
             <IconButton
               title='Unfold'
@@ -450,6 +493,7 @@ export default function Problem() {
               className={colorMode === 'dark' ? '!tw-text-white' : ''}
               value={leftTab}
               onChange={(event: React.SyntheticEvent, value: any) => handleTabChange(event, value, 'firstpaneltabs')}
+              group='description-submission-tabs'
             ></CustomTabs>
             <div>
               <IconButton
@@ -475,10 +519,10 @@ export default function Problem() {
               )}
             </div>
           </div>
-          <CustomTabPanel value={leftTab} index={0}>
+          <CustomTabPanel group='description-submission-tabs' value={leftTab} index={0}>
             <ProblemDescription problem={problemInfo} serialNo={problemname?.slice(24)}></ProblemDescription>
           </CustomTabPanel>
-          <CustomTabPanel value={leftTab} index={1}>
+          <CustomTabPanel group='description-submission-tabs' value={leftTab} index={1}>
             {problemsubmissions.length ? <ProblemSubmissions data={problemsubmissions}></ProblemSubmissions> : null}
           </CustomTabPanel>
         </div>
@@ -504,6 +548,7 @@ export default function Problem() {
               orientation='vertical'
               tabs={secondPanelTabLabels}
               writingMode='vertical-lr'
+              group='code-test-output-tabs'
             />
             <IconButton onClick={expandLeftPanel}>
               <ChevronLeftOutlinedIcon titleAccess='Fold' fontSize='small' />
@@ -535,6 +580,7 @@ export default function Problem() {
               tabs={secondPanelTabLabels}
               className={colorMode === 'dark' ? 'tw-text-white' : ''}
               onChange={(event: React.SyntheticEvent, value: any) => handleTabChange(event, value, 'secondpaneltabs')}
+              group='code-test-output-tabs'
             ></CustomTabs>
             <div>
               <IconButton onClick={toggleLeftPanelExpansion} size='small'>
@@ -555,12 +601,12 @@ export default function Problem() {
               )}
             </div>
           </div>
-          <CustomTabPanel innerDivClassName='tw-h-full' value={currentTab} index={0}>
+          <CustomTabPanel group='code-test-output-tabs' innerDivClassName='tw-h-full' value={currentTab} index={0}>
             <div className='tw-h-[73dvh]'>
               <div className='tw-border-b-2 tw-p-2 tw-border-b-[#ffffff12] tw-flex tw-justify-between tw-items-center'>
                 <LanguageDropDown
                   languagestoskip={problemInfo?.languagestoskip ?? ([] as number[])}
-                  label='supported language'
+                  label='Supported language'
                   language={language}
                   handleChange={handleChange}
                 />
@@ -585,29 +631,36 @@ export default function Problem() {
                   </IconButton>
                 </div>
               </div>
-              <CodeEditor
-                onMount={(editor) => {
-                  editorRef.current = editor;
-                }}
-                onChange={async (changedcode) => {
-                  if (changedcode) {
-                    await saveUserCode(problemname?.slice(0, 24) as string, language, changedcode as string);
-                    setCode((prev) => {
-                      const copy = { ...prev };
-                      if (copy[language]) {
-                        copy[language] = changedcode;
-                      }
-                      return copy;
-                    });
-                  }
-                }}
-                code={code[language]}
-                language={supportedLanguages[language].toLowerCase()}
-                theme={colorMode === 'light' ? 'mylightTheme' : 'mydarkTheme'}
-              ></CodeEditor>
+              <React.Suspense fallback={<SkeletonResultsLoader />}>
+                <CodeEditor
+                  onMount={(editor) => {
+                    editorRef.current = editor;
+                  }}
+                  onChange={async (changedcode) => {
+                    if (changedcode) {
+                      await saveUserCode(
+                        problemname?.slice(0, 24) as string,
+                        language,
+                        changedcode as string,
+                        user?._id ?? ''
+                      );
+                      setCode((prev) => {
+                        const copy = { ...prev };
+                        if (copy[language]) {
+                          copy[language] = changedcode;
+                        }
+                        return copy;
+                      });
+                    }
+                  }}
+                  code={code[language]}
+                  language={supportedLanguages[language].toLowerCase()}
+                  theme={colorMode === 'light' ? 'mylightTheme' : 'mydarkTheme'}
+                ></CodeEditor>
+              </React.Suspense>
             </div>
           </CustomTabPanel>
-          <CustomTabPanel value={currentTab} index={1}>
+          <CustomTabPanel group='code-test-output-tabs' value={currentTab} index={1}>
             {(submissionStatusLoading && isSumbitted) || submissionStatusInprocess ? (
               <Stack className='tw-h-[75dvh]' spacing={2}>
                 <SkeletonResultsLoader />
@@ -643,7 +696,7 @@ export default function Problem() {
                           <span>{`Case ${i + 1}`}</span>
                         </div>
                       }
-                      {...a11yProps(i)}
+                      {...a11yProps(`execution-case-tabs`, i)}
                     ></Tab>
                   ))}
                 </Tabs>
@@ -651,7 +704,12 @@ export default function Problem() {
                   ? problemRunStatus.map((s, i) => {
                       const inputvalues = s.stdin.split('\n');
                       return (
-                        <CustomTabPanel index={i} key={`language${s.language_id}`} value={submissionTab}>
+                        <CustomTabPanel
+                          group='execution-case-tabs'
+                          index={i}
+                          key={`language${s.language_id}`}
+                          value={submissionTab}
+                        >
                           <ProblemResults
                             inputValues={inputvalues}
                             variables={Object.values(problemInfo?.metadata.variables_names)}
@@ -669,7 +727,7 @@ export default function Problem() {
               </div>
             )}
           </CustomTabPanel>
-          <CustomTabPanel value={currentTab} index={2}>
+          <CustomTabPanel group='code-test-output-tabs' value={currentTab} index={2}>
             {problemSubmissionLoading ? (
               <Stack className='tw-h-[90dvh]' spacing={2}>
                 <SkeletonResultsLoader />

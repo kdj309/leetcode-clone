@@ -59,6 +59,13 @@ export interface validateSessionRes extends Omit<commonresponse, 'data'> {
   data: { user: user | null; isExipred: boolean };
 }
 
+export interface batchSubmissionResponse extends Omit<commonresponse, 'data'> {
+  data: {
+    submissionIds: string[];
+    _id: string;
+  };
+}
+
 export interface metadata {
   input_format: string;
   output_format: string;
@@ -73,6 +80,7 @@ export interface TabPanelProps {
   value: number;
   wrapperClassName?: string;
   innerDivClassName?: string;
+  group?: string;
 }
 export interface submission {
   language_id: number;
@@ -89,7 +97,7 @@ export interface problemsubmission {
   problemId: string;
   submissionId: string;
   languageId: number;
-  status: 'Accepted' | 'Wrong Answer' | 'Error';
+  status: 'accepted' | 'wrong answer' | 'error';
   submittedAt: Date;
 }
 export interface user {
@@ -102,8 +110,18 @@ export interface user {
   submissions: problemsubmission[];
 }
 export interface createUser extends Partial<user> {}
-export interface updateuser extends Partial<user> {}
-export type status = 'Accepted' | 'Wrong Answer' | 'Processing';
+export interface IupdateSubmission {
+  submissionId: string;
+  status: string;
+  actual_output?: string[];
+  memoryUsed?: number[];
+  executionTime?: number[];
+  problemId: string;
+  languageId: number;
+  submittedAt?: Date;
+  difficulty?: string;
+}
+export type status = 'accepted' | 'wrong Answer' | 'Processing';
 export interface submissionprops {
   problemId: string;
   submissionId: string;
@@ -140,3 +158,105 @@ export interface ShrinkState {
 }
 
 export interface SavedProblems extends Pick<Problem, '_id' | 'title' | 'difficulty'> {}
+
+// Leaderboard Types
+export interface LeaderboardUser {
+  _id: string;
+  userId: string;
+  userName: string;
+  totalPoints: number;
+  easyProblems: number;
+  mediumProblems: number;
+  hardProblems: number;
+  totalSolved: number;
+  currentRank: number;
+  previousRank: number;
+  isOnline: boolean;
+  lastUpdated: string;
+}
+
+export interface LeaderboardPagination {
+  currentPage: number;
+  totalPages: number;
+  pageSize: number;
+  totalUsers: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
+export type TimePeriod = 'all' | 'week' | 'month' | 'today';
+export type DifficultyFilter = 'all' | 'easy' | 'medium' | 'hard';
+export type ViewMode = 'table' | 'cards';
+export type SortBy = 'rank' | 'points' | 'recent';
+export type SortOrder = 'asc' | 'desc';
+
+export interface LeaderboardFilters {
+  timePeriod: TimePeriod;
+  searchQuery: string;
+  difficultyFilter: DifficultyFilter;
+  showOnlineOnly: boolean;
+}
+
+export interface LeaderboardUI {
+  viewMode: ViewMode;
+  sortBy: SortBy;
+  sortOrder: SortOrder;
+  highlightedUserId: string | null;
+  autoRefresh: boolean;
+  refreshInterval: number;
+  showRankIndicators: boolean;
+}
+
+export interface UpdateEvent {
+  userId: string;
+  type: 'rank_change' | 'points_update' | 'status_change';
+  data: Record<string, any>;
+  timestamp: Date;
+}
+
+export interface LeaderboardRealtimeState {
+  isConnected: boolean;
+  lastUpdate: Date | null;
+  pendingUpdates: UpdateEvent[];
+  notificationsEnabled: boolean;
+}
+
+export interface LeaderboardCache {
+  pageCache: Map<number, { data: LeaderboardUser[]; cachedAt: number }>;
+  lastCacheCleared: Date | null;
+  cacheDuration: number;
+}
+
+export interface LeaderboardData {
+  users: LeaderboardUser[];
+  isLoading: boolean;
+  error: string | null;
+  lastFetched: Date | null;
+}
+
+export interface LeaderboardState {
+  // Data
+  leaderboardData: LeaderboardData;
+
+  // Pagination
+  pagination: LeaderboardPagination;
+
+  // Filters
+  filters: LeaderboardFilters;
+
+  // Current user
+  currentUserId: string | null;
+  currentUserRank: number | null;
+
+  // UI
+  ui: LeaderboardUI;
+
+  // Realtime
+  realtime: LeaderboardRealtimeState;
+
+  // Cache
+  cache: LeaderboardCache;
+}
+export interface SuccessResponse extends Omit<commonresponse, 'data'> {
+  data: LeaderboardUser[];
+}

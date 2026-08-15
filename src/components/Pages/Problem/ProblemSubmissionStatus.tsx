@@ -1,6 +1,9 @@
-import { Stack, Typography } from '@mui/material';
-import Confetti from 'react-confetti';
+import CircularProgress from '@mui/material/CircularProgress';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
+import { lazy, Suspense } from 'react';
 import useWindowSize from 'react-use/lib/useWindowSize';
+const Confetti = lazy(() => import('react-confetti'));
 export default function ProblemSubmissionStatus({
   successCount,
   totalTestCases,
@@ -31,13 +34,15 @@ export default function ProblemSubmissionStatus({
       </div>
       {problemSubmissionStatus === 'Accepted' && (
         <div style={{ justifySelf: 'center' }}>
-          <Confetti
-            gravity={0.1}
-            tweenDuration={3000}
-            width={isFullmode ? width : 750}
-            recycle={false}
-            height={height - 1}
-          />
+          <Suspense fallback={<CircularProgress aria-label='Loading…' />}>
+            <Confetti
+              gravity={0.1}
+              tweenDuration={3000}
+              width={isFullmode ? width : 750}
+              recycle={false}
+              height={height - 1}
+            />
+          </Suspense>
           <Typography textAlign='center'>🎉You have successfully completed this problem!</Typography>
         </div>
       )}
