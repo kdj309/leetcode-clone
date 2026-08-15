@@ -16,7 +16,7 @@ export const useUserSlice = create<userSlice>()(
       user: null,
       setUser: (user) => set(() => ({ user: user }), false, 'setUser'),
       sessionLoading: 'Not Started',
-      appendSubmissions: (userId: string, submissions: problemsubmission[]) =>
+      appendSubmissions: (userId: string, submissions: problemsubmission[]) =>{
         set(
           (state) => {
             if (!state.user || state.user._id !== userId) return {};
@@ -29,7 +29,8 @@ export const useUserSlice = create<userSlice>()(
           },
           false,
           'appendSubmissions'
-        ),
+        );
+      },
       checkSession: async () => {
         try {
           set({ sessionLoading: 'Loading' }, false, 'checkSession/loading');
