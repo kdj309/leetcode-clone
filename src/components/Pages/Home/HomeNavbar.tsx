@@ -43,7 +43,7 @@ export default function HomeNavbar() {
 
   const handleAutocompleteSelect = useCallback(
     (_: MappedSearchResult) => {
-      navigate(`/problems/${_.id}`);
+      navigate(`/problems/${_.id}${_.index}`);
     },
     [navigate]
   );
@@ -75,7 +75,7 @@ export default function HomeNavbar() {
         {showHomeSearch && (
           <div className='tw-w-full tw-max-w-2xl'>
             <ProblemAutocomplete
-              topResults={topResults}
+              topResults={topResults.map((result, index) => ({ ...result, index: index + 1 }))}
               isSearching={isSearching}
               searchQuery={searchQuery}
               onSearchChange={handleSearchChange}

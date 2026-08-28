@@ -20,6 +20,7 @@ export interface MappedSearchResult {
   score: number;
   difficulty?: 'easy' | 'medium' | 'hard';
   description?: string;
+  index?:number
 }
 
 /**
