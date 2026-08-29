@@ -82,10 +82,10 @@ export default function Problem() {
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { isFullScreenEnabled, toggleFullScreen } = useFullScreen();
-  const { postMessage } = useBroadcastChannel<{ type: string; submissions: problemsubmission[],userId: string }>(
+  const { postMessage } = useBroadcastChannel<{ type: string; submissions: problemsubmission[], userId: string }>(
     'submission-sync',
     (data) => {
-     if (data.type !== 'submission') return;
+      if (data.type !== 'submission') return;
       appendSubmissions(data.userId, data.submissions);
     }
   );
@@ -431,8 +431,8 @@ export default function Problem() {
         style={
           isResizeActive
             ? {
-                gridTemplateColumns: `${getGridTemplateColumns(sizes.div1, sizes.div2)}`,
-              }
+              gridTemplateColumns: `${getGridTemplateColumns(sizes.div1, sizes.div2)}`,
+            }
             : undefined
         }
       >
@@ -675,6 +675,7 @@ export default function Problem() {
               </div>
             ) : problemRunStatus.length ? (
               <Stack spacing={2} className='tw-h-[75dvh]'>
+                {/* 1. Case Navigation Tabs */}
                 <Tabs
                   className={colorMode === 'dark' ? 'tw-text-white' : ''}
                   value={submissionTab}
@@ -684,12 +685,12 @@ export default function Problem() {
                 >
                   {problemRunStatus.map((s, i) => (
                     <Tab
-                      key={i}
+                      key={`tab-case-${i}`} // Fixed: Unique key using index
                       className={colorMode === 'dark' ? 'tw-text-white min-w-12' : 'min-w-12'}
                       label={
                         <div className='tw-flex tw-gap-1 tw-items-center'>
                           <FiberManualRecordIcon
-                            color={s.status.description === 'Accepted' ? 'success' : 'error'}
+                            color={s?.status?.description === 'Accepted' ? 'success' : 'error'}
                             sx={{ fontSize: '0.7em' }}
                             fontSize='small'
                           />
@@ -697,29 +698,38 @@ export default function Problem() {
                         </div>
                       }
                       {...a11yProps(`execution-case-tabs`, i)}
-                    ></Tab>
+                    />
                   ))}
                 </Tabs>
-                {problemInfo?.metadata.variables_names != undefined
-                  ? problemRunStatus.map((s, i) => {
-                      const inputvalues = s.stdin.split('\n');
-                      return (
-                        <CustomTabPanel
-                          group='execution-case-tabs'
-                          index={i}
-                          key={`language${s.language_id}`}
-                          value={submissionTab}
-                        >
-                          <ProblemResults
-                            inputValues={inputvalues}
-                            variables={Object.values(problemInfo?.metadata.variables_names)}
-                            standardOutput={s.stdout}
-                            expectedOutput={s.expected_output}
-                          />
-                        </CustomTabPanel>
-                      );
-                    })
-                  : null}
+
+                {/* 2. Tab Panels */}
+                {problemRunStatus.map((s, i) => {
+                  // Safely parse stdin line-by-line or default to empty array
+                  const inputvalues = s.stdin ? s.stdin.split('\n') : [];
+
+                  const variableNames = problemInfo?.metadata?.variables_names
+                    ? Object.values(problemInfo.metadata.variables_names)
+                    : [];
+
+                  return (
+                    <CustomTabPanel
+                      group='execution-case-tabs'
+                      index={i}
+                      key={`panel-case-${i}`} // Fixed: Unique key for each test case panel
+                      value={submissionTab}
+                    >
+                      <ProblemResults
+                        inputValues={inputvalues}
+                        variables={variableNames}
+                        standardOutput={s.stdout}
+                        expectedOutput={s.expected_output}
+                        status={s.status}
+                        stderr={s.stderr}
+                        compileOutput={(s as any).compile_output}
+                      />
+                    </CustomTabPanel>
+                  );
+                })}
               </Stack>
             ) : (
               <div className='tw-h-[75dvh]'>
