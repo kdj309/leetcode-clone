@@ -85,7 +85,9 @@ export default function Problem() {
   const { postMessage } = useBroadcastChannel<{ type: string; submissions: problemsubmission[], userId: string }>(
     'submission-sync',
     (data) => {
-      if (data.type !== 'submission') return;
+      if (data.type !== 'submission') {
+          return;
+      } 
       appendSubmissions(data.userId, data.submissions);
     }
   );
