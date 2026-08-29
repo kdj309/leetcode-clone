@@ -19,11 +19,13 @@ import Profile from './Profile';
 import { ChevronRightOutlined, ChevronLeftOutlined } from '@mui/icons-material';
 import { useProblemSlice } from '../../store/problemSlice/problem';
 import { getProblemWindow, getRandomIndex } from '../../utils/helpers';
-import { useCallback, useMemo, useReducer } from 'react';
+import { useCallback, useEffect, useMemo, useReducer } from 'react';
 import CustomDrawer from './Drawer';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
 import Tooltip from '@mui/material/Tooltip';
+import { useQuery } from '@tanstack/react-query';
+import getProblems from '../../services/getProblems';
 
 export default function Navbar({
   problemExecuteHandler,
@@ -56,6 +58,27 @@ export default function Navbar({
   const toggleDrawer = () => {
     toggleDrawerVisiblility();
   };
+  
+    const { data: navigationProblemsData } = useQuery({
+    queryKey: ['problems-navigation', { page: 1, limit: 1000 }],
+    queryFn: ({ queryKey }) => {
+      const [_, objAtIndex1] = queryKey;
+      const { page: pageVal, limit: limitVal } = objAtIndex1 as { page: number; limit: number };
+      return getProblems(pageVal, limitVal);
+    },
+    staleTime:5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    enabled: isLogedIn&&problems.length === 0, // Only fetch if the user is logged in and problems are not already loaded
+  });
+
+  // Update slice with the full catalog for Navbar navigation
+  const { setProblems } = useProblemSlice();
+  useEffect(() => {
+    if (!problems.length&&navigationProblemsData?.problems && navigationProblemsData.problems.length > 0) {
+      setProblems(navigationProblemsData.problems);
+    }
+  }, [navigationProblemsData?.problems, problems.length]);
 
   const problemPreviousPage = useCallback(() => {
     const currentProblemIndex = problems.findIndex((p) => p._id === (problemname?.slice(0, 24) as string));
